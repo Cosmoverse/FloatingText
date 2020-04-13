@@ -38,11 +38,13 @@ FloatingTextHandlerManager::register(new FloatingTextFindAndReplaceTickerHandler
 ```
 
 ## Performance and Resource Consumption
-Once a world is loaded, FloatingText will cache all floating texts into memory, indexing them by their unique IDs.
+Once a world is loaded, FloatingText will cache all floating texts present in that world into memory, indexing them by their unique IDs.
 FloatingText also maintains a chunk -> [id -> entity_id] mapping to speed up floating texts lookup on chunk basis.<br>
 The plugin was optimized for fast runtime lookups by sacrificing memory (and in some cases, CPU too (yeah i know)).<br>
 While registering a `FloatingTextHandler`, the plugin loops through all cached floating texts and calls `FloatingTextHandler::canHandle()` so
 it can prepare a list of floating texts that require an update during runtime, making `FloatingTextHandlerManager::register()` `O(n)` `n = number of cached floating texts / sum of number of floating texts in all loaded worlds`.<br>
+
+Floating texts are registered as entities and will only spawn when the chunk they're in is loaded.<br>
 
 The floating texts are stored in an `SQLite3` database and all calls to the database are tbreaded + asynchronous (except for `CREATE TABLE` which sleeps the main thread until the query has been executed).
 This means whenever a world is loaded, the floating texts may not appear until the results of the SELECT statement are returned. However, SQLite3 is fast enough to make this a near impossible case (unless you hacked the plugin and got access to the `Database` object and are hogging the database with mass insert/updates requests).
