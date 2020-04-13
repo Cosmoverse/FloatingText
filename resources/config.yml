@@ -1,0 +1,5 @@
+# Config file for FloatingTexts v0.0.1
+
+# The file name of the database storing the floating text data
+# DO NOT set this to config.yml
+database-file: data.sqlite

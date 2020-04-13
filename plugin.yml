@@ -1,0 +1,11 @@
+name: FloatingText
+main: cosmicpe\floatingtext\Loader
+api: 4.0.0
+version: 0.0.1
+commands:
+  floatingtext:
+    aliases: [ft]
+    permission: floatingtext.command
+permissions:
+  floatingtext.command:
+    default: op
