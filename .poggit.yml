@@ -1,0 +1,10 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/Cosmoverse/FloatingText
+build-by-default: true
+branches:
+- master
+projects:
+  FloatingText:
+    path: ""
+    lint:
+      phpstan: false
+...
