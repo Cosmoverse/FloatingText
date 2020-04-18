@@ -123,11 +123,20 @@ final class WorldInstance{
 		if($entity_id !== null){
 			$entity = $this->world->getEntity($entity_id);
 			if($entity !== null){
-				$entity->flagForDespawn();
+				// Not using Entity::flagForDespawn() here because during WorldInstance::update(), a
+				// floating text could exist while one with the same floating text ID is flagged for despawn,
+				// leading to a race condition as database is updated during Entity::close() which is likely
+				// called after a new floating text of the same floating text ID has been indexed into the
+				// database.
+				$entity->close();
 				return true;
 			}
 		}
 		return false;
+	}
+
+	public function getText(int $id) : ?FloatingText{
+		return $this->texts[$id] ?? null;
 	}
 
 	public function getTextEntity(int $id) : ?FloatingTextEntity{
