@@ -229,8 +229,9 @@ final class Loader extends PluginBase{
 
 							$old_pos = new Vector3($text->getX(), $text->getY(), $text->getZ());
 							$new_pos = $sender->getPosition();
-							$text->setPosition($new_pos->x, $new_pos->y, $new_pos->z);
-							$world->update($id, $text);
+							$new_text = clone $text;
+							$new_text->setPosition($new_pos->x, $new_pos->y, $new_pos->z);
+							$world->update($id, $new_text);
 
 							$sender->sendMessage(TextFormat::GREEN . "Popped floating text #" . $id . "!");
 							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $old_pos->x) . ", y=" . sprintf("%0.4f", $old_pos->y) . ", z=" . sprintf("%0.4f", $old_pos->z) . " world=" . $text->getWorld());

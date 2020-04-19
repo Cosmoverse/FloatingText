@@ -20,9 +20,6 @@ final class WorldManager{
 	public static function init(Loader $loader) : void{
 		foreach($loader->getServer()->getWorldManager()->getWorlds() as $world){
 			self::add($world);
-			foreach($world->getChunks() as $chunk){
-				self::get($world)->onChunkLoad($chunk->getX(), $chunk->getZ());
-			}
 		}
 
 		$loader->getServer()->getPluginManager()->registerEvents(new WorldEventListener(), $loader);
@@ -38,6 +35,9 @@ final class WorldManager{
 
 	public static function add(World $world) : void{
 		self::$worlds[$world->getId()] = $instance = new WorldInstance($world);
+		foreach($world->getChunks() as $chunk){
+			$instance->onChunkLoad($chunk->getX(), $chunk->getZ());
+		}
 		foreach(self::$listeners as $listener){
 			$listener->onWorldAdd($instance);
 		}
