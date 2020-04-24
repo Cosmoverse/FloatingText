@@ -44,11 +44,11 @@ class FloatingTextEntity extends Entity{
 	/** @var Closure[] */
 	private $despawn_callbacks = [];
 
-	public function __construct(World $world, CompoundTag $nbt, int $npc_id, FloatingText $npc){
+	public function __construct(World $world, CompoundTag $nbt, int $text_id, FloatingText $text){
 		$this->setCanSaveWithChunk(false);
 		$this->uuid = UUID::fromRandom();
-		$this->floating_text_id = $npc_id;
-		$this->floating_text = $npc;
+		$this->floating_text_id = $text_id;
+		$this->floating_text = $text;
 		parent::__construct($world, $nbt);
 	}
 
