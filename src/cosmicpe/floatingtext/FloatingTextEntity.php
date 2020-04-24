@@ -10,10 +10,11 @@ use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\ItemFactory;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
+use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\AddPlayerPacket;
 use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLegacyIds;
-use pocketmine\network\mcpe\protocol\types\SkinAdapterSingleton;
 use pocketmine\player\Player;
 use pocketmine\utils\UUID;
 use pocketmine\world\World;
@@ -43,11 +44,11 @@ class FloatingTextEntity extends Entity{
 	/** @var Closure[] */
 	private $despawn_callbacks = [];
 
-	public function __construct(World $world, CompoundTag $nbt, int $floating_text_id, FloatingText $text){
+	public function __construct(World $world, CompoundTag $nbt, int $npc_id, FloatingText $npc){
 		$this->setCanSaveWithChunk(false);
 		$this->uuid = UUID::fromRandom();
-		$this->floating_text_id = $floating_text_id;
-		$this->floating_text = $text;
+		$this->floating_text_id = $npc_id;
+		$this->floating_text = $npc;
 		parent::__construct($world, $nbt);
 	}
 
@@ -79,7 +80,7 @@ class FloatingTextEntity extends Entity{
 		$pk->motion = $this->getMotion();
 		$pk->yaw = $this->location->yaw;
 		$pk->pitch = $this->location->pitch;
-		$pk->item = ItemFactory::air();
+		$pk->item = TypeConverter::getInstance()->coreItemStackToNet(ItemFactory::air());
 		$pk->metadata = $this->getSyncedNetworkData(false);
 		$session->sendDataPacket($pk);
 
