@@ -23,7 +23,7 @@ final class WorldInstance{
 	/** @var FloatingText[] */
 	private $texts = [];
 
-	/** @var int[][] */
+	/** @var int[][]|null[][] */
 	private $text_chunks = []; // = [chunkHash => [id => entity_id|null, id2 => entity_id2|null, ...idn => entity_idn|null]]
 
 	public function __construct(World $world){
@@ -106,7 +106,7 @@ final class WorldInstance{
 	private function spawnText(int $id) : void{
 		$text = $this->texts[$id];
 		/** @var FloatingTextEntity $entity */
-		$entity = EntityFactory::create(FloatingTextEntity::class, $this->world, EntityFactory::createBaseNBT(new Vector3($text->getX(), $text->getY(), $text->getZ()))
+		$entity = EntityFactory::getInstance()->create(FloatingTextEntity::class, $this->world, EntityFactory::createBaseNBT(new Vector3($text->getX(), $text->getY(), $text->getZ()))
 			->setString("CustomName", $text->getLine()),
 		$id, $text);
 		$entity->addDespawnCallback(function() use($text, $id, $entity) : void{
@@ -141,8 +141,13 @@ final class WorldInstance{
 
 	public function getTextEntity(int $id) : ?FloatingTextEntity{
 		$entity_id = $this->text_chunks[self::chunkHash($this->texts[$id])][$id];
-		/** @noinspection PhpIncompatibleReturnTypeInspection */
-		return $entity_id !== null ? $this->world->getEntity($entity_id) : null;
+		if($entity_id !== null){
+			$entity = $this->world->getEntity($entity_id);
+			if($entity instanceof FloatingTextEntity){
+				return $entity;
+			}
+		}
+		return null;
 	}
 
 	public function onChunkLoad(int $chunkX, int $chunkZ) : void{

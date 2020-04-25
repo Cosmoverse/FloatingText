@@ -8,11 +8,12 @@ use Closure;
 use cosmicpe\floatingtext\FloatingText;
 use cosmicpe\floatingtext\Loader;
 use cosmicpe\floatingtext\world\WorldManager;
+use poggit\libasynql\DataConnector;
 use poggit\libasynql\libasynql;
 
 final class Database{
 
-	/** @var libasynql */
+	/** @var DataConnector */
 	private $connector;
 
 	public function __construct(Loader $loader){

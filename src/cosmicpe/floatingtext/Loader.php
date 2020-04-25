@@ -22,7 +22,7 @@ final class Loader extends PluginBase{
 	private $database;
 
 	protected function onEnable() : void{
-		EntityFactory::register(FloatingTextEntity::class, ["cosmicpe:floating_text"]);
+		EntityFactory::getInstance()->register(FloatingTextEntity::class, ["cosmicpe:floating_text"]);
 		$this->database = new Database($this);
 		FloatingTextHandlerManager::init();
 		WorldManager::init($this);
