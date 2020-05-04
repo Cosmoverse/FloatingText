@@ -6,34 +6,27 @@ namespace cosmicpe\floatingtext;
 
 use Closure;
 use pocketmine\entity\Entity;
-use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\item\ItemFactory;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\network\mcpe\convert\SkinAdapterSingleton;
-use pocketmine\network\mcpe\convert\TypeConverter;
-use pocketmine\network\mcpe\protocol\AddPlayerPacket;
-use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLegacyIds;
-use pocketmine\player\Player;
-use pocketmine\utils\UUID;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\world\World;
 
 class FloatingTextEntity extends Entity{
 
-	public const NETWORK_ID = EntityLegacyIds::ARMOR_STAND;
+	public const NETWORK_ID = EntityLegacyIds::FALLING_BLOCK;
 
-	public $height = 0.01;
-	public $width = 0.01;
+	public $height = 0.0;
+	public $width = 0.0;
 	public $gravity = 0.0;
 	public $canCollide = false;
 	public $keepMovement = true;
 	protected $gravityEnabled = false;
 	protected $drag = 0.0;
-	protected $baseOffset = 1.62;
-
-	/** @var UUID */
-	private $uuid;
+	protected $baseOffset = 0.49;
+	protected $scale = 0.0;
+	protected $immobile = true;
 
 	/** @var int */
 	private $floating_text_id;
@@ -46,7 +39,6 @@ class FloatingTextEntity extends Entity{
 
 	public function __construct(World $world, CompoundTag $nbt, int $text_id, FloatingText $text){
 		$this->setCanSaveWithChunk(false);
-		$this->uuid = UUID::fromRandom();
 		$this->floating_text_id = $text_id;
 		$this->floating_text = $text;
 		parent::__construct($world, $nbt);
@@ -55,6 +47,13 @@ class FloatingTextEntity extends Entity{
 	protected function initEntity(CompoundTag $nbt) : void{
 		parent::initEntity($nbt);
 		$this->setNameTagAlwaysVisible(true);
+	}
+
+	protected function syncNetworkData() : void{
+		$this->networkProperties->setByte(EntityMetadataProperties::ALWAYS_SHOW_NAMETAG, $this->alwaysShowNameTag ? 1 : 0);
+		$this->networkProperties->setFloat(EntityMetadataProperties::SCALE, $this->scale);
+		$this->networkProperties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
+		$this->networkProperties->setGenericFlag(EntityMetadataFlags::IMMOBILE, $this->immobile);
 	}
 
 	public function addDespawnCallback(Closure $callback) : void{
@@ -67,27 +66,6 @@ class FloatingTextEntity extends Entity{
 
 	public function getFloatingText() : FloatingText{
 		return $this->floating_text;
-	}
-
-	protected function sendSpawnPacket(Player $player) : void{
-		$session = $player->getNetworkSession();
-
-		$pk = new AddPlayerPacket();
-		$pk->uuid = $this->uuid;
-		$pk->username = "";
-		$pk->entityRuntimeId = $this->getId();
-		$pk->position = $this->location->asVector3();
-		$pk->motion = $this->getMotion();
-		$pk->yaw = $this->location->yaw;
-		$pk->pitch = $this->location->pitch;
-		$pk->item = TypeConverter::getInstance()->coreItemStackToNet(ItemFactory::air());
-		$pk->metadata = $this->getSyncedNetworkData(false);
-		$session->sendDataPacket($pk);
-
-		$pk = new PlayerSkinPacket();
-		$pk->uuid = $this->uuid;
-		$pk->skin = SkinAdapterSingleton::get()->toSkinData(new Skin("Standard_Custom", str_repeat("\x00", 8192)));
-		$session->sendDataPacket($pk);
 	}
 
 	public function isFireProof() : bool{
