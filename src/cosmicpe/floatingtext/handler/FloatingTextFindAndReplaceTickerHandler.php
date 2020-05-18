@@ -24,7 +24,7 @@ final class FloatingTextFindAndReplaceTickerHandler implements FloatingTextHandl
 	public function __construct(Plugin $plugin, string $find, Closure $replace, int $interval = 20){
 		$this->find = $find;
 		$this->replace = $replace;
-		$plugin->getScheduler()->scheduleRepeatingTask(new ClosureTask(function(int $currentTick) : void{
+		$plugin->getScheduler()->scheduleRepeatingTask(new ClosureTask(function() : void{
 			foreach($this->entities as $entity){
 				$this->updateEntity($entity);
 			}

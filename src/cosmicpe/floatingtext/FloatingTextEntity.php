@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace cosmicpe\floatingtext;
 
 use Closure;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\nbt\tag\CompoundTag;
@@ -15,7 +16,9 @@ use pocketmine\world\World;
 
 class FloatingTextEntity extends Entity{
 
-	public const NETWORK_ID = EntityLegacyIds::FALLING_BLOCK;
+	public static function getNetworkTypeId() : int{
+		return EntityLegacyIds::FALLING_BLOCK;
+	}
 
 	public $height = 0.0;
 	public $width = 0.0;
@@ -54,6 +57,7 @@ class FloatingTextEntity extends Entity{
 		$this->networkProperties->setFloat(EntityMetadataProperties::SCALE, $this->scale);
 		$this->networkProperties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
 		$this->networkProperties->setGenericFlag(EntityMetadataFlags::IMMOBILE, $this->immobile);
+		$this->networkProperties->setInt(EntityMetadataProperties::VARIANT, VanillaBlocks::AIR()->getRuntimeId());
 	}
 
 	public function addDespawnCallback(Closure $callback) : void{
