@@ -10,6 +10,7 @@ use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLegacyIds;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\world\World;
@@ -52,12 +53,14 @@ class FloatingTextEntity extends Entity{
 		$this->setNameTagAlwaysVisible(true);
 	}
 
-	protected function syncNetworkData() : void{
-		$this->networkProperties->setByte(EntityMetadataProperties::ALWAYS_SHOW_NAMETAG, $this->alwaysShowNameTag ? 1 : 0);
-		$this->networkProperties->setFloat(EntityMetadataProperties::SCALE, $this->scale);
-		$this->networkProperties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
-		$this->networkProperties->setGenericFlag(EntityMetadataFlags::IMMOBILE, $this->immobile);
-		$this->networkProperties->setInt(EntityMetadataProperties::VARIANT, VanillaBlocks::AIR()->getRuntimeId());
+	protected function syncNetworkData(EntityMetadataCollection $properties) : void{
+		parent::syncNetworkData($properties);
+		$properties->setByte(EntityMetadataProperties::ALWAYS_SHOW_NAMETAG, $this->alwaysShowNameTag ? 1 : 0);
+		$properties->setFloat(EntityMetadataProperties::SCALE, $this->scale);
+		$properties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
+		$properties->setGenericFlag(EntityMetadataFlags::IMMOBILE, $this->immobile);
+		$properties->setInt(EntityMetadataProperties::VARIANT, VanillaBlocks::AIR()->getRuntimeId());
+
 	}
 
 	public function addDespawnCallback(Closure $callback) : void{
@@ -110,7 +113,7 @@ class FloatingTextEntity extends Entity{
 	public function setNameTag(string $name) : void{
 		parent::setNameTag($name);
 		$this->sendData($this->hasSpawned, $this->getSyncedNetworkData(true));
-		$this->networkProperties->clearDirtyProperties();
+		$this->getNetworkProperties()->clearDirtyProperties();
 	}
 
 	protected function onDispose() : void{
