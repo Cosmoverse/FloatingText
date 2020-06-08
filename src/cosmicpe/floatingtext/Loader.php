@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace cosmicpe\floatingtext;
 
+use Closure;
 use cosmicpe\floatingtext\db\Database;
 use cosmicpe\floatingtext\handler\FloatingTextHandlerManager;
 use cosmicpe\floatingtext\world\WorldManager;
@@ -15,6 +16,7 @@ use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
+use pocketmine\world\Position;
 
 final class Loader extends PluginBase{
 
@@ -36,6 +38,13 @@ final class Loader extends PluginBase{
 		$this->database->close();
 	}
 
+	private function addFloatingText(Position $pos, string $line, Closure $callback) : void{
+		$this->database->add($text = new FloatingText($pos->getWorldNonNull()->getFolderName(), $pos->x, $pos->y, $pos->z, $line), static function(int $id) use($pos, $text, $callback) : void{
+			WorldManager::get($pos->getWorldNonNull())->add($id, $text);
+			$callback($id, $text);
+		});
+	}
+
 	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
 		if(!($sender instanceof Player)){
 			$sender->sendMessage(TextFormat::RED . "This command must be used as a player.");
@@ -47,17 +56,16 @@ final class Loader extends PluginBase{
 				case "add":
 					if(isset($args[1])){
 						$line = TextFormat::colorize(implode(" ", array_slice($args, 1)));
-						$world = $sender->getWorld();
-						$pos = $sender->getPosition();
-						$this->database->add($text = new FloatingText($world->getFolderName(), $pos->x, $pos->y, $pos->z, $line), static function(int $id) use($sender, $world, $text) : void{
-							WorldManager::get($world)->add($id, $text);
-							$sender->sendMessage(TextFormat::GREEN . "Added floating text at your position!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world=" . $text->getWorld());
-							$sender->sendMessage(TextFormat::GREEN . "Text: " . $text->getLine());
+						$this->addFloatingText($sender->getPosition(), $line, static function(int $id, FloatingText $text) use($sender) : void{
+							if(!($sender instanceof Player) || $sender->isOnline()){
+								$sender->sendMessage(TextFormat::GREEN . "Added floating text at your position!");
+								$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+								$sender->sendMessage(TextFormat::GREEN . "Text: {$text->getLine()}");
+							}
 						});
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <...text>" . TextFormat::EOL .
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <...text>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: You may use & for colour codes."
 						);
 					}
@@ -65,11 +73,11 @@ final class Loader extends PluginBase{
 				case "prepend":
 					if(isset($args[1]) && isset($args[2])){
 						$id = (int) $args[1];
-						if($args[1] === "$id"){
+						if($args[1] === (string) $id){
 							$world = WorldManager::get($sender->getWorld());
 							$text = $world->getText($id);
 							if($text === null){
-								$sender->sendMessage(TextFormat::RED . "No floating text with the ID " . $id . " was found!");
+								$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 								return false;
 							}
 
@@ -77,27 +85,27 @@ final class Loader extends PluginBase{
 							$text->setLine($line . TextFormat::EOL . $text->getLine());
 							$world->update($id, $text);
 
-							$sender->sendMessage(TextFormat::GREEN . "Prepended floating text #" . $id . "!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world=" . $text->getWorld());
-							$sender->sendMessage(TextFormat::GREEN . "Prepended Text: " . $line);
+							$sender->sendMessage(TextFormat::GREEN . "Prepended floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "Prepended Text: {$line}");
 						}else{
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: " . $id);
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
 						}
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <id> <...line>" . TextFormat::EOL .
-							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/" . $label . " near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id> <...line>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 					return true;
 				case "append":
 					if(isset($args[1]) && isset($args[2])){
 						$id = (int) $args[1];
-						if($args[1] === "$id"){
+						if($args[1] === (string) $id){
 							$world = WorldManager::get($sender->getWorld());
 							$text = $world->getText($id);
 							if($text === null){
-								$sender->sendMessage(TextFormat::RED . "No floating text with the ID " . $id . " was found!");
+								$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 								return false;
 							}
 
@@ -105,27 +113,27 @@ final class Loader extends PluginBase{
 							$text->setLine($text->getLine() . TextFormat::EOL . $line);
 							$world->update($id, $text);
 
-							$sender->sendMessage(TextFormat::GREEN . "Appended floating text #" . $id . "!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world=" . $text->getWorld());
-							$sender->sendMessage(TextFormat::GREEN . "Appended Text: " . $line);
+							$sender->sendMessage(TextFormat::GREEN . "Appended floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "Appended Text: {$line}");
 						}else{
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: " . $id);
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
 						}
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <id> <...line>" . TextFormat::EOL .
-							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/" . $label . " near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id> <...line>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 					return true;
 				case "shift":
 					if(isset($args[1])){
 						$id = (int) $args[1];
-						if($args[1] === "$id"){
+						if($args[1] === (string) $id){
 							$world = WorldManager::get($sender->getWorld());
 							$text = $world->getText($id);
 							if($text === null){
-								$sender->sendMessage(TextFormat::RED . "No floating text with the ID " . $id . " was found!");
+								$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 								return false;
 							}
 
@@ -134,27 +142,27 @@ final class Loader extends PluginBase{
 							$text->setLine(implode(TextFormat::EOL, $line));
 							$world->update($id, $text);
 
-							$sender->sendMessage(TextFormat::GREEN . "Shifted floating text #" . $id . "!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world=" . $text->getWorld());
-							$sender->sendMessage(TextFormat::GREEN . "Shifted Text: " . $shifted);
+							$sender->sendMessage(TextFormat::GREEN . "Shifted floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "Shifted Text: {$shifted}");
 						}else{
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: " . $id);
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
 						}
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <id>" . TextFormat::EOL .
-							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/" . $label . " near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 					return true;
 				case "pop":
 					if(isset($args[1])){
 						$id = (int) $args[1];
-						if($args[1] === "$id"){
+						if($args[1] === (string) $id){
 							$world = WorldManager::get($sender->getWorld());
 							$text = $world->getText($id);
 							if($text === null){
-								$sender->sendMessage(TextFormat::RED . "No floating text with the ID " . $id . " was found!");
+								$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 								return false;
 							}
 
@@ -163,16 +171,58 @@ final class Loader extends PluginBase{
 							$text->setLine(implode(TextFormat::EOL, $line));
 							$world->update($id, $text);
 
-							$sender->sendMessage(TextFormat::GREEN . "Popped floating text #" . $id . "!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world=" . $text->getWorld());
-							$sender->sendMessage(TextFormat::GREEN . "Popped Text: " . $pop);
+							$sender->sendMessage(TextFormat::GREEN . "Popped floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "Popped Text: {$pop}");
 						}else{
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: " . $id);
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
 						}
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <id>" . TextFormat::EOL .
-							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/" . $label . " near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+						);
+					}
+					return true;
+				case "split":
+					if(isset($args[1])){
+						$id = (int) $args[1];
+						if($args[1] === (string) $id){
+							$world = WorldManager::get($sender->getWorld());
+							$text = $world->getText($id);
+							if($text === null){
+								$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
+								return false;
+							}
+
+							$step = -0.2875;
+
+							$lines = explode(TextFormat::EOL, $text->getLine());
+							if(count($lines) === 1){
+								$sender->sendMessage(TextFormat::RED . "Floating text #{$id} contains only one line!");
+								return false;
+							}
+
+							$text->setLine(array_shift($lines));
+							$text->setPosition($text->getX(), $text->getY() - ($step * count($lines) * 0.5), $text->getZ());
+
+							$world->update($id, $text);
+							$offset = $step;
+							foreach($lines as $line){
+								$this->addFloatingText(new Position($text->getX(), $text->getY() + $offset, $text->getZ(), $sender->getWorld()), $line, static function(int $id, FloatingText $text) : void{});
+								$offset += $step;
+							}
+
+							$sender->sendMessage(TextFormat::GREEN . "Split floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "Number of splits: " . (count($lines) + 1));
+						}else{
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
+						}
+					}else{
+						$sender->sendMessage(
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 					return true;
@@ -180,18 +230,18 @@ final class Loader extends PluginBase{
 					if(isset($args[1]) && isset($args[2]) && isset($args[3])){
 						$id = (int) $args[1];
 						$line_number = (int) $args[2];
-						if($args[1] === "$id"){
-							if($args[2] === "$line_number"){
+						if($args[1] === (string) $id){
+							if($args[2] === (string) $line_number){
 								$world = WorldManager::get($sender->getWorld());
 								$text = $world->getText($id);
 								if($text === null){
-									$sender->sendMessage(TextFormat::RED . "No floating text with the ID " . $id . " was found!");
+									$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 									return false;
 								}
 
 								$lines = explode(TextFormat::EOL, $text->getLine());
 								if(!isset($lines[$line_number - 1])){
-									$sender->sendMessage(TextFormat::RED . "Line #" . $line_number . " does not exist floating text with the ID " . $id . "!");
+									$sender->sendMessage(TextFormat::RED . "Line #{$line_number} does not exist floating text with the ID {$id}!");
 									return false;
 								}
 
@@ -199,31 +249,31 @@ final class Loader extends PluginBase{
 								$text->setLine(implode(TextFormat::EOL, $lines));
 								$world->update($id, $text);
 
-								$sender->sendMessage(TextFormat::GREEN . "Updated floating text #" . $id . "'s line #" . $line_number . "!");
-								$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world=" . $text->getWorld());
-								$sender->sendMessage(TextFormat::GREEN . "Updated line: " . $line_number);
-								$sender->sendMessage(TextFormat::GREEN . "New Text: " . $new_text);
+								$sender->sendMessage(TextFormat::GREEN . "Updated floating text #{$id}'s line #{$line_number}!");
+								$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+								$sender->sendMessage(TextFormat::GREEN . "Updated line: {$line_number}");
+								$sender->sendMessage(TextFormat::GREEN . "New Text: {$new_text}");
 							}else{
-								$sender->sendMessage(TextFormat::RED . "Invalid line number: " . $line_number);
+								$sender->sendMessage(TextFormat::RED . "Invalid line number: {$line_number}");
 							}
 						}else{
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: " . $id);
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
 						}
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <id> <line_number> <...text>" . TextFormat::EOL .
-							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/" . $label . " near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id> <line_number> <...text>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 					return true;
 				case "move":
 					if(isset($args[1])){
 						$id = (int) $args[1];
-						if($args[1] === "$id"){
+						if($args[1] === (string) $id){
 							$world = WorldManager::get($sender->getWorld());
 							$text = $world->getText($id);
 							if($text === null){
-								$sender->sendMessage(TextFormat::RED . "No floating text with the ID " . $id . " was found!");
+								$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 								return false;
 							}
 
@@ -233,16 +283,16 @@ final class Loader extends PluginBase{
 							$new_text->setPosition($new_pos->x, $new_pos->y, $new_pos->z);
 							$world->update($id, $new_text);
 
-							$sender->sendMessage(TextFormat::GREEN . "Popped floating text #" . $id . "!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $old_pos->x) . ", y=" . sprintf("%0.4f", $old_pos->y) . ", z=" . sprintf("%0.4f", $old_pos->z) . " world=" . $text->getWorld());
-							$sender->sendMessage(TextFormat::GREEN . "New Position: x=" . sprintf("%0.4f", $new_pos->x) . ", y=" . sprintf("%0.4f", $new_pos->y) . ", z=" . sprintf("%0.4f", $new_pos->z) . " world=" . $text->getWorld());
+							$sender->sendMessage(TextFormat::GREEN . "Popped floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $old_pos->x) . ", y=" . sprintf("%0.4f", $old_pos->y) . ", z=" . sprintf("%0.4f", $old_pos->z) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "New Position: x=" . sprintf("%0.4f", $new_pos->x) . ", y=" . sprintf("%0.4f", $new_pos->y) . ", z=" . sprintf("%0.4f", $new_pos->z) . " world={$text->getWorld()}");
 						}else{
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: " . $id);
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
 						}
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <id>" . TextFormat::EOL .
-							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/" . $label . " near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 					return true;
@@ -251,7 +301,7 @@ final class Loader extends PluginBase{
 					$found = 0;
 					foreach($world->getNearbyEntities($sender->getBoundingBox()->expandedCopy(8, 8, 8)) as $entity){
 						if($entity instanceof FloatingTextEntity){
-							$sender->sendMessage(TextFormat::GRAY . "#" . $entity->getFloatingTextId() . ": " . TextFormat::RESET . $entity->getNameTag());
+							$sender->sendMessage(TextFormat::GRAY . "#{$entity->getFloatingTextId()}: " . TextFormat::RESET . $entity->getNameTag());
 							++$found;
 						}
 					}
@@ -260,23 +310,23 @@ final class Loader extends PluginBase{
 				case "remove":
 					if(isset($args[1])){
 						$id = (int) $args[1];
-						if($args[1] === "$id"){
+						if($args[1] === (string) $id){
 							try{
 								$text = WorldManager::get($sender->getWorld())->remove($id);
 							}catch(InvalidArgumentException $e){
-								$sender->sendMessage(TextFormat::RED . "No floating text with the ID " . $id . " was found!");
+								$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 								return false;
 							}
-							$sender->sendMessage(TextFormat::GREEN . "Removed floating text #" . $id . "!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world=" . $text->getWorld());
-							$sender->sendMessage(TextFormat::GREEN . "Text: " . $text->getLine());
+							$sender->sendMessage(TextFormat::GREEN . "Removed floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "Text: {$text->getLine()}");
 						}else{
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: " . $id);
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
 						}
 					}else{
 						$sender->sendMessage(
-							TextFormat::RED . "Usage: /" . $label . " " . $args[0] . " <id>" . TextFormat::EOL .
-							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/" . $label . " near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 					return true;
@@ -285,15 +335,16 @@ final class Loader extends PluginBase{
 
 		$sender->sendMessage(
 			TextFormat::BOLD . TextFormat::BLUE . "Floating Text Command" . TextFormat::RESET . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " add <...text>" . TextFormat::GRAY . " - Adds a floating text at your location" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " prepend <id> <...text>" . TextFormat::GRAY . " - Prepends a line to a floating text" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " append <id> <...text>" . TextFormat::GRAY . " - Appends a line to a floating text" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " shift <id>" . TextFormat::GRAY . " - Shifts a line off of a floating text" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " pop <id>" . TextFormat::GRAY . " - Pops a line off of a floating text" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " set <id> <...text>" . TextFormat::GRAY . " - Changes an existing line's value on a floating text" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " move <id>" . TextFormat::GRAY . " - Moves a floating text to your location" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " near" . TextFormat::GRAY . " - Lists all floating texts near your location" . TextFormat::EOL .
-			TextFormat::BLUE . "/" . $label . " remove <id>" . TextFormat::GRAY . " - Removes a floating text"
+			TextFormat::BLUE . "/{$label} add <...text>" . TextFormat::GRAY . " - Adds a floating text at your location" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} prepend <id> <...text>" . TextFormat::GRAY . " - Prepends a line to a floating text" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} append <id> <...text>" . TextFormat::GRAY . " - Appends a line to a floating text" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} shift <id>" . TextFormat::GRAY . " - Shifts a line off of a floating text" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} pop <id>" . TextFormat::GRAY . " - Pops a line off of a floating text" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} split <id>" . TextFormat::GRAY . " - Separate a multi-line floating text" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} set <id> <...text>" . TextFormat::GRAY . " - Changes an existing line's value on a floating text" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} move <id>" . TextFormat::GRAY . " - Moves a floating text to your location" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} near" . TextFormat::GRAY . " - Lists all floating texts near your location" . TextFormat::EOL .
+			TextFormat::BLUE . "/{$label} remove <id>" . TextFormat::GRAY . " - Removes a floating text"
 		);
 		return false;
 	}
