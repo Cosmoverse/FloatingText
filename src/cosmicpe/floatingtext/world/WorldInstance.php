@@ -7,8 +7,6 @@ namespace cosmicpe\floatingtext\world;
 use cosmicpe\floatingtext\FloatingText;
 use cosmicpe\floatingtext\FloatingTextEntity;
 use InvalidArgumentException;
-use pocketmine\entity\EntityFactory;
-use pocketmine\math\Vector3;
 use pocketmine\world\World;
 
 final class WorldInstance{
@@ -105,10 +103,8 @@ final class WorldInstance{
 
 	private function spawnText(int $id) : void{
 		$text = $this->texts[$id];
-		/** @var FloatingTextEntity $entity */
-		$entity = EntityFactory::getInstance()->create(FloatingTextEntity::class, $this->world, EntityFactory::createBaseNBT(new Vector3($text->getX(), $text->getY(), $text->getZ()))
-			->setString("CustomName", $text->getLine()),
-		$id, $text);
+
+		$entity = new FloatingTextEntity($this->world, $id, $text);
 		$entity->addDespawnCallback(function() use($text, $id, $entity) : void{
 			$this->text_chunks[self::chunkHash($text)][$id] = null;
 			WorldManager::onWorldFloatingTextDespawn($this, $id, $text, $entity);

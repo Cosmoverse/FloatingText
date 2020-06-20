@@ -7,9 +7,10 @@ namespace cosmicpe\floatingtext;
 use Closure;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Entity;
+use pocketmine\entity\Location;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\network\mcpe\protocol\types\entity\EntityLegacyIds;
+use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
@@ -17,8 +18,8 @@ use pocketmine\world\World;
 
 class FloatingTextEntity extends Entity{
 
-	public static function getNetworkTypeId() : int{
-		return EntityLegacyIds::FALLING_BLOCK;
+	public static function getNetworkTypeId() : string{
+		return EntityIds::FALLING_BLOCK;
 	}
 
 	public $height = 0.0;
@@ -41,15 +42,16 @@ class FloatingTextEntity extends Entity{
 	/** @var Closure[] */
 	private $despawn_callbacks = [];
 
-	public function __construct(World $world, CompoundTag $nbt, int $text_id, FloatingText $text){
+	public function __construct(World $world, int $text_id, FloatingText $text){
 		$this->setCanSaveWithChunk(false);
 		$this->floating_text_id = $text_id;
 		$this->floating_text = $text;
-		parent::__construct($world, $nbt);
+		parent::__construct(new Location($text->getX(), $text->getY(), $text->getZ(), 0.0, 0.0, $world));
 	}
 
 	protected function initEntity(CompoundTag $nbt) : void{
 		parent::initEntity($nbt);
+		$this->setNameTag($this->floating_text->getLine());
 		$this->setNameTagAlwaysVisible(true);
 	}
 

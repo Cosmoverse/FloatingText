@@ -13,10 +13,12 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\entity\EntityFactory;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
+use pocketmine\world\World;
 
 final class Loader extends PluginBase{
 
@@ -24,7 +26,9 @@ final class Loader extends PluginBase{
 	private $database;
 
 	protected function onEnable() : void{
-		EntityFactory::getInstance()->register(FloatingTextEntity::class, ["cosmicpe:floating_text"]);
+		EntityFactory::getInstance()->register(FloatingTextEntity::class, static function(World $world, CompoundTag $nbt) : FloatingTextEntity{
+			throw new InvalidArgumentException(FloatingTextEntity::class . " cannot be exported as NBT");
+		}, ["cosmicpe:floating_text"]);
 		$this->database = new Database($this);
 		FloatingTextHandlerManager::init();
 		WorldManager::init($this);
@@ -195,7 +199,7 @@ final class Loader extends PluginBase{
 								return false;
 							}
 
-							$step = -0.2875;
+							$step = -0.275;
 
 							$lines = explode(TextFormat::EOL, $text->getLine());
 							if(count($lines) === 1){
