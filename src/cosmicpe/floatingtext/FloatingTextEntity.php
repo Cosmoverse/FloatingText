@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace cosmicpe\floatingtext;
 
 use Closure;
-use pocketmine\block\VanillaBlocks;
+use pocketmine\block\BlockLegacyIds;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Location;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
@@ -29,9 +31,11 @@ class FloatingTextEntity extends Entity{
 	public $keepMovement = true;
 	protected $gravityEnabled = false;
 	protected $drag = 0.0;
-	protected $baseOffset = 0.49;
 	protected $scale = 0.0;
 	protected $immobile = true;
+
+	/** @var float */
+	protected $baseOffset = 0.49;
 
 	/** @var int */
 	private $floating_text_id;
@@ -61,8 +65,7 @@ class FloatingTextEntity extends Entity{
 		$properties->setFloat(EntityMetadataProperties::SCALE, $this->scale);
 		$properties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
 		$properties->setGenericFlag(EntityMetadataFlags::IMMOBILE, $this->immobile);
-		$properties->setInt(EntityMetadataProperties::VARIANT, VanillaBlocks::AIR()->getRuntimeId());
-
+		$properties->setInt(EntityMetadataProperties::VARIANT, RuntimeBlockMapping::getInstance()->toRuntimeId(BlockLegacyIds::AIR, 0));
 	}
 
 	public function addDespawnCallback(Closure $callback) : void{
@@ -96,8 +99,8 @@ class FloatingTextEntity extends Entity{
 		return false;
 	}
 
-	public function canBreathe() : bool{
-		return true;
+	public function getOffsetPosition(Vector3 $vector3) : Vector3{
+		return parent::getOffsetPosition($vector3)->add(0.0, $this->baseOffset, 0.0);
 	}
 
 	public function attack(EntityDamageEvent $source) : void{

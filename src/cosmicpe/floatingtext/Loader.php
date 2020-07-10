@@ -37,8 +37,8 @@ final class Loader extends PluginBase{
 	}
 
 	private function addFloatingText(Position $pos, string $line, Closure $callback) : void{
-		$this->database->add($text = new FloatingText($pos->getWorldNonNull()->getFolderName(), $pos->x, $pos->y, $pos->z, $line), static function(int $id) use($pos, $text, $callback) : void{
-			WorldManager::get($pos->getWorldNonNull())->add($id, $text);
+		$this->database->add($text = new FloatingText($pos->getWorld()->getFolderName(), $pos->x, $pos->y, $pos->z, $line), static function(int $id) use($pos, $text, $callback) : void{
+			WorldManager::get($pos->getWorld())->add($id, $text);
 			$callback($id, $text);
 		});
 	}
