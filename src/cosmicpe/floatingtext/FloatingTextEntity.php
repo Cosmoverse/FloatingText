@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace cosmicpe\floatingtext;
 
 use Closure;
-use pocketmine\block\BlockLegacyIds;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Location;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -65,7 +65,7 @@ class FloatingTextEntity extends Entity{
 		$properties->setFloat(EntityMetadataProperties::SCALE, $this->scale);
 		$properties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
 		$properties->setGenericFlag(EntityMetadataFlags::IMMOBILE, $this->immobile);
-		$properties->setInt(EntityMetadataProperties::VARIANT, RuntimeBlockMapping::getInstance()->toRuntimeId(BlockLegacyIds::AIR, 0));
+		$properties->setInt(EntityMetadataProperties::VARIANT, RuntimeBlockMapping::getInstance()->toRuntimeId(VanillaBlocks::AIR()->getFullId()));
 	}
 
 	public function addDespawnCallback(Closure $callback) : void{
