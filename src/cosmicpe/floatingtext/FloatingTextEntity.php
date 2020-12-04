@@ -104,7 +104,7 @@ class FloatingTextEntity extends Entity{
 	}
 
 	public function attack(EntityDamageEvent $source) : void{
-		$source->setCancelled();
+		$source->cancel();
 	}
 
 	public function onUpdate(int $currentTick) : bool{

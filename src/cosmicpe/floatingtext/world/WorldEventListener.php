@@ -32,7 +32,6 @@ final class WorldEventListener implements Listener{
 	 * @priority LOWEST
 	 */
 	public function onChunkLoad(ChunkLoadEvent $event) : void{
-		$chunk = $event->getChunk();
-		WorldManager::get($event->getWorld())->onChunkLoad($chunk->getX(), $chunk->getZ());
+		WorldManager::get($event->getWorld())->onChunkLoad($event->getChunkX(), $event->getChunkZ());
 	}
 }

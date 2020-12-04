@@ -35,8 +35,9 @@ final class WorldManager{
 
 	public static function add(World $world) : void{
 		self::$worlds[$world->getId()] = $instance = new WorldInstance($world);
-		foreach($world->getChunks() as $chunk){
-			$instance->onChunkLoad($chunk->getX(), $chunk->getZ());
+		foreach($world->getChunks() as $chunk_hash => $_){
+			World::getXZ($chunk_hash, $chunkX, $chunkZ);
+			$instance->onChunkLoad($chunkX, $chunkZ);
 		}
 		foreach(self::$listeners as $listener){
 			$listener->onWorldAdd($instance);
