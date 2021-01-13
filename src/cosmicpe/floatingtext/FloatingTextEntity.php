@@ -7,6 +7,7 @@ namespace cosmicpe\floatingtext;
 use Closure;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Entity;
+use pocketmine\entity\EntitySizeInfo;
 use pocketmine\entity\Location;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\math\Vector3;
@@ -24,8 +25,6 @@ class FloatingTextEntity extends Entity{
 		return EntityIds::FALLING_BLOCK;
 	}
 
-	public $height = 0.0;
-	public $width = 0.0;
 	public $gravity = 0.0;
 	public $canCollide = false;
 	public $keepMovement = true;
@@ -57,6 +56,10 @@ class FloatingTextEntity extends Entity{
 		parent::initEntity($nbt);
 		$this->setNameTag($this->floating_text->getLine());
 		$this->setNameTagAlwaysVisible(true);
+	}
+
+	protected function getInitialSizeInfo() : EntitySizeInfo{
+		return new EntitySizeInfo(0.0, 0.0);
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{
@@ -117,7 +120,7 @@ class FloatingTextEntity extends Entity{
 
 	public function setNameTag(string $name) : void{
 		parent::setNameTag($name);
-		$this->sendData($this->hasSpawned, $this->getSyncedNetworkData(true));
+		$this->sendData($this->hasSpawned, $this->getDirtyNetworkData());
 		$this->getNetworkProperties()->clearDirtyProperties();
 	}
 
