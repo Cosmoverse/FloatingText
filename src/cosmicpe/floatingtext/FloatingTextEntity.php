@@ -33,9 +33,6 @@ class FloatingTextEntity extends Entity{
 	protected $scale = 0.0;
 	protected $immobile = true;
 
-	/** @var float */
-	protected $baseOffset = 0.49;
-
 	/** @var int */
 	private $floating_text_id;
 
@@ -103,7 +100,7 @@ class FloatingTextEntity extends Entity{
 	}
 
 	public function getOffsetPosition(Vector3 $vector3) : Vector3{
-		return parent::getOffsetPosition($vector3)->add(0.0, $this->baseOffset, 0.0);
+		return parent::getOffsetPosition($vector3)->add(0.0, 0.49, 0.0);
 	}
 
 	public function attack(EntityDamageEvent $source) : void{
