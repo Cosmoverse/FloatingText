@@ -12,14 +12,11 @@ use pocketmine\scheduler\ClosureTask;
 
 final class FloatingTextFindAndReplaceTickerHandler implements FloatingTextHandler{
 
-	/** @var string */
-	private $find;
-
-	/** @var Closure */
-	private $replace;
+	private string $find;
+	private Closure $replace;
 
 	/** @var FloatingTextEntity[] */
-	private $entities = [];
+	private array $entities = [];
 
 	public function __construct(Plugin $plugin, string $find, Closure $replace, int $interval = 20){
 		$this->find = $find;

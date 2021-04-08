@@ -19,8 +19,7 @@ use pocketmine\world\Position;
 
 final class Loader extends PluginBase{
 
-	/** @var Database */
-	private $database;
+	private Database $database;
 
 	protected function onEnable() : void{
 		$this->database = new Database($this);

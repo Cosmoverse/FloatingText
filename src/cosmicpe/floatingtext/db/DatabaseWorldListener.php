@@ -11,11 +11,8 @@ use cosmicpe\floatingtext\world\WorldListener;
 
 final class DatabaseWorldListener implements WorldListener{
 
-	/** @var Database */
-	private $database;
-
-	/** @var bool */
-	private $wait_until_load;
+	private Database $database;
+	private bool $wait_until_load;
 
 	public function __construct(Database $database, bool $wait_until_load = false){
 		$this->database = $database;

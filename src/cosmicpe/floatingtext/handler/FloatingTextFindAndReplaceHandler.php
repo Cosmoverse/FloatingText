@@ -9,11 +9,8 @@ use cosmicpe\floatingtext\FloatingTextEntity;
 
 final class FloatingTextFindAndReplaceHandler implements FloatingTextHandler{
 
-	/** @var string */
-	private $find;
-
-	/** @var string */
-	private $replace;
+	private string $find;
+	private string $replace;
 
 	public function __construct(string $find, string $replace){
 		$this->find = $find;

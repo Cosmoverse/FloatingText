@@ -33,14 +33,11 @@ class FloatingTextEntity extends Entity{
 	protected $scale = 0.0;
 	protected $immobile = true;
 
-	/** @var int */
-	private $floating_text_id;
-
-	/** @var FloatingText */
-	private $floating_text;
+	private int $floating_text_id;
+	private FloatingText $floating_text;
 
 	/** @var Closure[] */
-	private $despawn_callbacks = [];
+	private array $despawn_callbacks = [];
 
 	public function __construct(World $world, int $text_id, FloatingText $text){
 		$this->setCanSaveWithChunk(false);

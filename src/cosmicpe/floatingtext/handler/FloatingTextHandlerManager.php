@@ -11,10 +11,10 @@ use cosmicpe\floatingtext\world\WorldManager;
 final class FloatingTextHandlerManager{
 
 	/** @var FloatingTextHandler[] */
-	private static $handlers = [];
+	private static array $handlers = [];
 
 	/** @var int[][] */
-	private static $id_handlers = [];
+	private static array $id_handlers = [];
 
 	public static function init() : void{
 		WorldManager::addListener(new FloatingTextHandlerWorldListener());

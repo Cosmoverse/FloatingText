@@ -12,10 +12,10 @@ use pocketmine\world\World;
 final class WorldManager{
 
 	/** @var WorldInstance[] */
-	private static $worlds = [];
+	private static array $worlds = [];
 
 	/** @var WorldListener[] */
-	private static $listeners = [];
+	private static array $listeners = [];
 
 	public static function init(Loader $loader) : void{
 		foreach($loader->getServer()->getWorldManager()->getWorlds() as $world){
