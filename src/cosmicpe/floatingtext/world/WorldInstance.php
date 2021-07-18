@@ -20,7 +20,11 @@ final class WorldInstance{
 	/** @var FloatingText[] */
 	private array $texts = [];
 
-	/** @var int[][]|null[][] */
+	/**
+	 * @var int[][]|null[][]
+	 *
+	 * @phpstan-var array<int, array<int, int|null>>
+	 */
 	private array $text_chunks = []; // = [chunkHash => [id => entity_id|null, id2 => entity_id2|null, ...idn => entity_idn|null]]
 
 	public function __construct(World $world){
