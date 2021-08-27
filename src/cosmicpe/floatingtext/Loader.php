@@ -234,6 +234,42 @@ final class Loader extends PluginBase{
 					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
 					$sender->sendMessage(TextFormat::GREEN . "Number of splits: " . (count($lines) + 1));
 					return true;
+				case "combine":
+					if(!isset($args[1]) || !isset($args[2])){
+						$sender->sendMessage(
+							TextFormat::RED . "Usage: /{$label} {$args[0]} <...ids>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+						);
+						return true;
+					}
+
+					$world = WorldManager::get($sender->getWorld());
+					$texts = [];
+					foreach(array_slice($args, 1) as $id_arg){
+						$id = (int) $id_arg;
+						if($id_arg !== (string) $id){
+							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id_arg}");
+							return true;
+						}
+
+						$text = $world->getText($id);
+						if($text === null){
+							$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
+							return true;
+						}
+
+						$texts[] = $text;
+					}
+
+					$line = implode(TextFormat::EOL, array_map(static function(FloatingText $text) : string{ return $text->getLine(); }, $texts));
+					$this->addFloatingText($sender->getPosition(), $line, static function(int $id, FloatingText $text) use($sender) : void{
+						if(!($sender instanceof Player) || $sender->isOnline()){
+							$sender->sendMessage(TextFormat::GREEN . "Added floating text at your position!");
+							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->getX()) . ", y=" . sprintf("%0.4f", $text->getY()) . ", z=" . sprintf("%0.4f", $text->getZ()) . " world={$text->getWorld()}");
+							$sender->sendMessage(TextFormat::GREEN . "Text: {$text->getLine()}");
+						}
+					});
+					return true;
 				case "set":
 					if(!isset($args[1]) || !isset($args[2]) || !isset($args[3])){
 						$sender->sendMessage(
