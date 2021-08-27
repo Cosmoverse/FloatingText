@@ -38,7 +38,7 @@ final class Database{
 	 * Returns all texts in a world indexed by their database ID.
 	 *
 	 * @param string $world
-	 * @param Closure $callback
+	 * @param Closure(array<int, FloatingText>) : void $callback
 	 */
 	public function load(string $world, Closure $callback) : void{
 		$this->connector->executeSelect(DatabaseStmts::LOAD, ["world" => $world], static function(array $rows) use($callback) : void{
@@ -54,7 +54,7 @@ final class Database{
 	 * Adds a floating text and returns it's database ID.
 	 *
 	 * @param FloatingText $text
-	 * @param Closure $callback
+	 * @param Closure(int) : void $callback
 	 */
 	public function add(FloatingText $text, Closure $callback) : void{
 		$this->connector->executeInsert(DatabaseStmts::ADD, [
