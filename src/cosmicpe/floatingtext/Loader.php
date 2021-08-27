@@ -280,7 +280,7 @@ final class Loader extends PluginBase{
 							$new_text->setPosition($new_pos->x, $new_pos->y, $new_pos->z);
 							$world->update($id, $new_text);
 
-							$sender->sendMessage(TextFormat::GREEN . "Popped floating text #{$id}!");
+							$sender->sendMessage(TextFormat::GREEN . "Moved floating text #{$id}!");
 							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $old_pos->x) . ", y=" . sprintf("%0.4f", $old_pos->y) . ", z=" . sprintf("%0.4f", $old_pos->z) . " world={$text->getWorld()}");
 							$sender->sendMessage(TextFormat::GREEN . "New Position: x=" . sprintf("%0.4f", $new_pos->x) . ", y=" . sprintf("%0.4f", $new_pos->y) . ", z=" . sprintf("%0.4f", $new_pos->z) . " world={$text->getWorld()}");
 						}else{
