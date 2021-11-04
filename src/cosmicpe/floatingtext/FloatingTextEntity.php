@@ -43,7 +43,7 @@ class FloatingTextEntity extends Entity{
 		$this->setCanSaveWithChunk(false);
 		$this->floating_text_id = $text_id;
 		$this->floating_text = $text;
-		parent::__construct(new Location($text->getX(), $text->getY(), $text->getZ(), 0.0, 0.0, $world));
+		parent::__construct(new Location($text->getX(), $text->getY(), $text->getZ(), $world, 0.0, 0.0));
 	}
 
 	protected function initEntity(CompoundTag $nbt) : void{
