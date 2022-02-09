@@ -30,7 +30,6 @@ class FloatingTextEntity extends Entity{
 	public $keepMovement = true;
 	protected $gravityEnabled = false;
 	protected $drag = 0.0;
-	protected $scale = 0.0;
 	protected $immobile = true;
 
 	private int $floating_text_id;
@@ -53,7 +52,7 @@ class FloatingTextEntity extends Entity{
 	}
 
 	protected function getInitialSizeInfo() : EntitySizeInfo{
-		return new EntitySizeInfo(0.0, 0.0);
+		return new EntitySizeInfo(0.01, 0.01);
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{
