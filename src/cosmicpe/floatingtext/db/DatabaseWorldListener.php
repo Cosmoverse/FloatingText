@@ -17,7 +17,11 @@ final class DatabaseWorldListener implements WorldListener{
 	){}
 
 	public function onWorldAdd(WorldInstance $world) : void{
-		$this->database->load($world->getWorld()->getFolderName(), static function(array $texts) use($world) : void{ $world->load($texts); });
+		$this->database->load($world->getWorld()->getFolderName(), static function(array $texts) use($world) : void{
+			if($world->getWorld()->isLoaded()){
+				$world->load($texts);
+			}
+		});
 		if($this->wait_until_load){
 			$this->database->waitAll();
 		}
