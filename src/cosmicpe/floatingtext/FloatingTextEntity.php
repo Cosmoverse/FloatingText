@@ -15,7 +15,6 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\world\World;
 
@@ -57,10 +56,6 @@ class FloatingTextEntity extends Entity{
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{
 		parent::syncNetworkData($properties);
-		$properties->setByte(EntityMetadataProperties::ALWAYS_SHOW_NAMETAG, $this->alwaysShowNameTag ? 1 : 0);
-		$properties->setFloat(EntityMetadataProperties::SCALE, $this->scale);
-		$properties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
-		$properties->setGenericFlag(EntityMetadataFlags::IMMOBILE, $this->immobile);
 		$properties->setInt(EntityMetadataProperties::VARIANT, RuntimeBlockMapping::getInstance()->toRuntimeId(VanillaBlocks::AIR()->getFullId()));
 	}
 
@@ -84,7 +79,7 @@ class FloatingTextEntity extends Entity{
 		return false;
 	}
 
-	protected function checkBlockCollision() : void{
+	protected function checkBlockIntersections() : void{
 	}
 
 	public function canCollideWith(Entity $entity) : bool{
