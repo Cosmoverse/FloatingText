@@ -29,7 +29,7 @@ final class FloatingTextFindAndReplaceTickerHandler implements FloatingTextHandl
 	}
 
 	public function canHandle(FloatingText $text) : bool{
-		return strpos($text->getLine(), $this->find) !== false;
+		return str_contains($text->getLine(), $this->find);
 	}
 
 	public function updateEntity(FloatingTextEntity $entity) : void{
