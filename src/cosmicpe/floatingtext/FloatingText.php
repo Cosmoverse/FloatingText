@@ -6,19 +6,13 @@ namespace cosmicpe\floatingtext;
 
 final class FloatingText{
 
-	private string $world;
-	private float $x;
-	private float $y;
-	private float $z;
-	private string $line;
-
-	public function __construct(string $world, float $x, float $y, float $z, string $line){
-		$this->world = $world;
-		$this->x = $x;
-		$this->y = $y;
-		$this->z = $z;
-		$this->line = $line;
-	}
+	public function __construct(
+		private string $world,
+		private float $x,
+		private float $y,
+		private float $z,
+		private string $line
+	){}
 
 	public function getWorld() : string{
 		return $this->world;

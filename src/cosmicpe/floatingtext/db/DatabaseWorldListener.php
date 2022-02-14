@@ -11,13 +11,10 @@ use cosmicpe\floatingtext\world\WorldListener;
 
 final class DatabaseWorldListener implements WorldListener{
 
-	private Database $database;
-	private bool $wait_until_load;
-
-	public function __construct(Database $database, bool $wait_until_load = false){
-		$this->database = $database;
-		$this->wait_until_load = $wait_until_load;
-	}
+	public function __construct(
+		private Database $database,
+		private bool $wait_until_load = false
+	){}
 
 	public function onWorldAdd(WorldInstance $world) : void{
 		$this->database->load($world->getWorld()->getFolderName(), static function(array $texts) use($world) : void{ $world->load($texts); });

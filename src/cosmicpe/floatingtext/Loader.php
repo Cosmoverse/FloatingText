@@ -27,12 +27,12 @@ final class Loader extends PluginBase{
 		WorldManager::init($this);
 	}
 
-	public function getDatabase() : Database{
-		return $this->database;
-	}
-
 	protected function onDisable() : void{
 		$this->database->close();
+	}
+
+	public function getDatabase() : Database{
+		return $this->database;
 	}
 
 	private function addFloatingText(Position $pos, string $line, Closure $callback) : void{

@@ -11,6 +11,9 @@ use pocketmine\event\world\WorldUnloadEvent;
 
 final class WorldEventListener implements Listener{
 
+	public function __construct(){
+	}
+
 	/**
 	 * @param WorldLoadEvent $event
 	 * @priority LOWEST

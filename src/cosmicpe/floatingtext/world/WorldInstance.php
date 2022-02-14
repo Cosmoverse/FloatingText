@@ -15,8 +15,6 @@ final class WorldInstance{
 		return World::chunkHash(((int) $text->getX()) >> 4, ((int) $text->getZ()) >> 4);
 	}
 
-	private World $world;
-
 	/** @var FloatingText[] */
 	private array $texts = [];
 
@@ -27,9 +25,9 @@ final class WorldInstance{
 	 */
 	private array $text_chunks = []; // = [chunkHash => [id => entity_id|null, id2 => entity_id2|null, ...idn => entity_idn|null]]
 
-	public function __construct(World $world){
-		$this->world = $world;
-	}
+	public function __construct(
+		private World $world
+	){}
 
 	public function getWorld() : World{
 		return $this->world;

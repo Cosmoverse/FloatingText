@@ -11,6 +11,9 @@ use cosmicpe\floatingtext\world\WorldListener;
 
 final class FloatingTextHandlerWorldListener implements WorldListener{
 
+	public function __construct(){
+	}
+
 	public function onWorldFloatingTextSpawn(WorldInstance $world, int $id, FloatingText $text, FloatingTextEntity $entity) : void{
 		FloatingTextHandlerManager::onWorldFloatingTextSpawn($id, $text, $entity);
 	}
