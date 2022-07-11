@@ -7,12 +7,13 @@ namespace cosmicpe\floatingtext\world;
 use cosmicpe\floatingtext\FloatingText;
 use cosmicpe\floatingtext\FloatingTextEntity;
 use InvalidArgumentException;
+use pocketmine\world\format\Chunk;
 use pocketmine\world\World;
 
 final class WorldInstance{
 
 	private static function chunkHash(FloatingText $text) : int{
-		return World::chunkHash(((int) $text->getX()) >> 4, ((int) $text->getZ()) >> 4);
+		return World::chunkHash(((int) $text->getX()) >> Chunk::COORD_BIT_SIZE, ((int) $text->getZ()) >> Chunk::COORD_BIT_SIZE);
 	}
 
 	/** @var FloatingText[] */
