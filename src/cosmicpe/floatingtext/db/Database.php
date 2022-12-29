@@ -23,15 +23,8 @@ final class Database{
 			],
 			"worker-limit" => 1
 		], ["sqlite" => "db/sqlite.sql"]);
-
 		$this->connector->executeGeneric(DatabaseStmts::INIT);
-		$this->waitAll();
-
 		$loader->getWorldManager()->addListener(new DatabaseWorldListener($this));
-	}
-
-	public function waitAll() : void{
-		$this->connector->waitAll();
 	}
 
 	/**
