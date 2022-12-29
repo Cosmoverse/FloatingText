@@ -15,7 +15,7 @@ final class FloatingTextFindAndReplaceHandler implements FloatingTextHandler{
 	){}
 
 	public function canHandle(FloatingText $text) : bool{
-		return str_contains($text->getLine(), $this->find);
+		return str_contains($text->line, $this->find);
 	}
 
 	public function onSpawn(FloatingText $text, FloatingTextEntity $entity) : void{

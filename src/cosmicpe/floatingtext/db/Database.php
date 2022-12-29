@@ -58,11 +58,11 @@ final class Database{
 	 */
 	public function add(FloatingText $text, Closure $callback) : void{
 		$this->connector->executeInsert(DatabaseStmts::ADD, [
-			"world" => $text->getWorld(),
-			"x" => $text->getX(),
-			"y" => $text->getY(),
-			"z" => $text->getZ(),
-			"line" => $text->getLine()
+			"world" => $text->world,
+			"x" => $text->x,
+			"y" => $text->y,
+			"z" => $text->z,
+			"line" => $text->line
 		], static function(int $insertId, int $affectedRows) use($callback) : void{ $callback($insertId); });
 	}
 
@@ -75,11 +75,11 @@ final class Database{
 	public function update(int $id, FloatingText $text) : void{
 		$this->connector->executeChange(DatabaseStmts::UPDATE, [
 			"id" => $id,
-			"world" => $text->getWorld(),
-			"x" => $text->getX(),
-			"y" => $text->getY(),
-			"z" => $text->getZ(),
-			"line" => $text->getLine()
+			"world" => $text->world,
+			"x" => $text->x,
+			"y" => $text->y,
+			"z" => $text->z,
+			"line" => $text->line
 		]);
 	}
 

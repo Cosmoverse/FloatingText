@@ -13,7 +13,7 @@ use pocketmine\world\World;
 final class WorldInstance{
 
 	private static function chunkHash(FloatingText $text) : int{
-		return World::chunkHash(((int) $text->getX()) >> Chunk::COORD_BIT_SIZE, ((int) $text->getZ()) >> Chunk::COORD_BIT_SIZE);
+		return World::chunkHash(((int) $text->x) >> Chunk::COORD_BIT_SIZE, ((int) $text->z) >> Chunk::COORD_BIT_SIZE);
 	}
 
 	/** @var FloatingText[] */

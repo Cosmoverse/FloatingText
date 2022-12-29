@@ -7,30 +7,10 @@ namespace cosmicpe\floatingtext;
 final class FloatingText{
 
 	public function __construct(
-		private string $world,
-		private float $x,
-		private float $y,
-		private float $z,
-		private string $line
+		/** @readonly */ public string $world,
+		/** @readonly */ public float $x,
+		/** @readonly */ public float $y,
+		/** @readonly */ public float $z,
+		/** @readonly */ public string $line
 	){}
-
-	public function getWorld() : string{
-		return $this->world;
-	}
-
-	public function getX() : float{
-		return $this->x;
-	}
-
-	public function getY() : float{
-		return $this->y;
-	}
-
-	public function getZ() : float{
-		return $this->z;
-	}
-
-	public function getLine() : string{
-		return $this->line;
-	}
 }
