@@ -16,6 +16,7 @@ use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
+use function array_shift;
 
 final class Loader extends PluginBase{
 
@@ -91,7 +92,7 @@ final class Loader extends PluginBase{
 					}
 
 					$line = TextFormat::colorize(implode(" ", array_slice($args, 2)));
-					$text->setLine($line . TextFormat::EOL . $text->getLine());
+					$text = new FloatingText($text->getWorld(), $text->getX(), $text->getY(), $text->getZ(), $line . TextFormat::EOL . $text->getLine());
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Prepended floating text #{$id}!");
@@ -121,7 +122,7 @@ final class Loader extends PluginBase{
 					}
 
 					$line = TextFormat::colorize(implode(" ", array_slice($args, 2)));
-					$text->setLine($text->getLine() . TextFormat::EOL . $line);
+					$text = new FloatingText($text->getWorld(), $text->getX(), $text->getY(), $text->getZ(), $text->getLine() . TextFormat::EOL . $line);
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Appended floating text #{$id}!");
@@ -152,7 +153,7 @@ final class Loader extends PluginBase{
 
 					$line = explode(TextFormat::EOL, $text->getLine());
 					$shifted = array_shift($line);
-					$text->setLine(implode(TextFormat::EOL, $line));
+					$text = new FloatingText($text->getWorld(), $text->getX(), $text->getY(), $text->getZ(), implode(TextFormat::EOL, $line));
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Shifted floating text #{$id}!");
@@ -183,7 +184,7 @@ final class Loader extends PluginBase{
 
 					$line = explode(TextFormat::EOL, $text->getLine());
 					$pop = array_pop($line);
-					$text->setLine(implode(TextFormat::EOL, $line));
+					$text = new FloatingText($text->getWorld(), $text->getX(), $text->getY(), $text->getZ(), implode(TextFormat::EOL, $line));
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Popped floating text #{$id}!");
@@ -220,9 +221,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$text->setLine(array_shift($lines));
-					$text->setPosition($text->getX(), $text->getY() - ($step * count($lines) * 0.5), $text->getZ());
-
+					$text = new FloatingText($text->getWorld(), $text->getX(), $text->getY() - ($step * count($lines) * 0.5), $text->getZ(), array_shift($lines));
 					$world->update($id, $text);
 					$offset = $step;
 					foreach($lines as $line){
@@ -305,7 +304,7 @@ final class Loader extends PluginBase{
 					}
 
 					$lines[$line_number - 1] = $new_text = TextFormat::colorize(implode(" ", array_slice($args, 3)));
-					$text->setLine(implode(TextFormat::EOL, $lines));
+					$text = new FloatingText($text->getWorld(), $text->getX(), $text->getY(), $text->getZ(), implode(TextFormat::EOL, $lines));
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Updated floating text #{$id}'s line #{$line_number}!");
@@ -337,8 +336,7 @@ final class Loader extends PluginBase{
 
 					$old_pos = new Vector3($text->getX(), $text->getY(), $text->getZ());
 					$new_pos = $sender->getPosition();
-					$new_text = clone $text;
-					$new_text->setPosition($new_pos->x, $new_pos->y, $new_pos->z);
+					$new_text = new FloatingText($text->getWorld(), $new_pos->x, $new_pos->y, $new_pos->z, $text->getLine());
 					$world->update($id, $new_text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Moved floating text #{$id}!");

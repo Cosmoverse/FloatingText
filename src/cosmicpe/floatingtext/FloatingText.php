@@ -18,10 +18,6 @@ final class FloatingText{
 		return $this->world;
 	}
 
-	public function setWorld(string $world) : void{
-		$this->world = $world;
-	}
-
 	public function getX() : float{
 		return $this->x;
 	}
@@ -34,17 +30,7 @@ final class FloatingText{
 		return $this->z;
 	}
 
-	public function setPosition(float $x, float $y, float $z) : void{
-		$this->x = $x;
-		$this->y = $y;
-		$this->z = $z;
-	}
-
 	public function getLine() : string{
 		return $this->line;
-	}
-
-	public function setLine(string $line) : void{
-		$this->line = $line;
 	}
 }
