@@ -12,83 +12,86 @@ use pocketmine\world\World;
 final class WorldManager{
 
 	/** @var WorldInstance[] */
-	private static array $worlds = [];
+	private array $worlds = [];
 
 	/** @var WorldListener[] */
-	private static array $listeners = [];
+	private array $listeners = [];
 
-	public static function init(Loader $loader) : void{
+	public function __construct(){
+	}
+
+	public function init(Loader $loader) : void{
 		foreach($loader->getServer()->getWorldManager()->getWorlds() as $world){
-			self::add($world);
+			$this->add($world);
 		}
 
-		$loader->getServer()->getPluginManager()->registerEvents(new WorldEventListener(), $loader);
+		$loader->getServer()->getPluginManager()->registerEvents(new WorldEventListener($this), $loader);
 	}
 
-	public static function addListener(WorldListener $listener) : void{
-		self::$listeners[spl_object_id($listener)] = $listener;
+	public function addListener(WorldListener $listener) : void{
+		$this->listeners[spl_object_id($listener)] = $listener;
 	}
 
-	public static function removeListener(WorldListener $listener) : void{
-		unset(self::$listeners[spl_object_id($listener)]);
+	public function removeListener(WorldListener $listener) : void{
+		unset($this->listeners[spl_object_id($listener)]);
 	}
 
-	public static function add(World $world) : void{
-		self::$worlds[$world->getId()] = $instance = new WorldInstance($world);
+	public function add(World $world) : void{
+		$this->worlds[$world->getId()] = $instance = new WorldInstance($this, $world);
 		foreach($world->getLoadedChunks() as $chunk_hash => $_){
 			World::getXZ($chunk_hash, $chunkX, $chunkZ);
 			$instance->onChunkLoad($chunkX, $chunkZ);
 		}
-		foreach(self::$listeners as $listener){
+		foreach($this->listeners as $listener){
 			$listener->onWorldAdd($instance);
 		}
 	}
 
-	public static function remove(World $world) : void{
-		$instance = self::$worlds[$id = $world->getId()];
-		unset(self::$worlds[$id]);
-		foreach(self::$listeners as $listener){
+	public function remove(World $world) : void{
+		$instance = $this->worlds[$id = $world->getId()];
+		unset($this->worlds[$id]);
+		foreach($this->listeners as $listener){
 			$listener->onWorldRemove($instance);
 		}
 	}
 
-	public static function get(World $world) : WorldInstance{
-		return self::$worlds[$world->getId()];
+	public function get(World $world) : WorldInstance{
+		return $this->worlds[$world->getId()];
 	}
 
 	/**
 	 * @return WorldInstance[]
 	 */
-	public static function getAll() : array{
-		return self::$worlds;
+	public function getAll() : array{
+		return $this->worlds;
 	}
 
-	public static function onWorldFloatingTextAdd(WorldInstance $world, int $id, FloatingText $text) : void{
-		foreach(self::$listeners as $listener){
+	public function onWorldFloatingTextAdd(WorldInstance $world, int $id, FloatingText $text) : void{
+		foreach($this->listeners as $listener){
 			$listener->onWorldFloatingTextAdd($world, $id, $text);
 		}
 	}
 
-	public static function onWorldFloatingTextUpdate(WorldInstance $world, int $id, FloatingText $text) : void{
-		foreach(self::$listeners as $listener){
+	public function onWorldFloatingTextUpdate(WorldInstance $world, int $id, FloatingText $text) : void{
+		foreach($this->listeners as $listener){
 			$listener->onWorldFloatingTextUpdate($world, $id, $text);
 		}
 	}
 
-	public static function onWorldFloatingTextSpawn(WorldInstance $world, int $id, FloatingText $text, FloatingTextEntity $entity) : void{
-		foreach(self::$listeners as $listener){
+	public function onWorldFloatingTextSpawn(WorldInstance $world, int $id, FloatingText $text, FloatingTextEntity $entity) : void{
+		foreach($this->listeners as $listener){
 			$listener->onWorldFloatingTextSpawn($world, $id, $text, $entity);
 		}
 	}
 
-	public static function onWorldFloatingTextDespawn(WorldInstance $world, int $id, FloatingText $text, FloatingTextEntity $entity) : void{
-		foreach(self::$listeners as $listener){
+	public function onWorldFloatingTextDespawn(WorldInstance $world, int $id, FloatingText $text, FloatingTextEntity $entity) : void{
+		foreach($this->listeners as $listener){
 			$listener->onWorldFloatingTextDespawn($world, $id, $text, $entity);
 		}
 	}
 
-	public static function onWorldFloatingTextRemove(WorldInstance $world, int $id) : void{
-		foreach(self::$listeners as $listener){
+	public function onWorldFloatingTextRemove(WorldInstance $world, int $id) : void{
+		foreach($this->listeners as $listener){
 			$listener->onWorldFloatingTextRemove($world, $id);
 		}
 	}

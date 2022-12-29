@@ -21,11 +21,17 @@ use function sprintf;
 final class Loader extends PluginBase{
 
 	private Database $database;
+	private WorldManager $world_manager;
+	private FloatingTextHandlerManager $handler_manager;
+
+	protected function onLoad() : void{
+		$this->world_manager = new WorldManager();
+		$this->handler_manager = new FloatingTextHandlerManager($this->world_manager);
+	}
 
 	protected function onEnable() : void{
 		$this->database = new Database($this);
-		FloatingTextHandlerManager::init();
-		WorldManager::init($this);
+		$this->world_manager->init($this);
 	}
 
 	protected function onDisable() : void{
@@ -36,9 +42,23 @@ final class Loader extends PluginBase{
 		return $this->database;
 	}
 
+	public function getWorldManager() : WorldManager{
+		return $this->world_manager;
+	}
+
+	public function getHandlerManager() : FloatingTextHandlerManager{
+		return $this->handler_manager;
+	}
+
+	/**
+	 * @param Position $pos
+	 * @param string $line
+	 * @param Closure(int, FloatingText) : void $callback
+	 */
 	private function addFloatingText(Position $pos, string $line, Closure $callback) : void{
-		$this->database->add($text = new FloatingText($pos->getWorld()->getFolderName(), $pos->x, $pos->y, $pos->z, $line), static function(int $id) use($pos, $text, $callback) : void{
-			WorldManager::get($pos->getWorld())->add($id, $text);
+		$text = new FloatingText($pos->getWorld()->getFolderName(), $pos->x, $pos->y, $pos->z, $line);
+		$this->database->add($text, function(int $id) use($pos, $text, $callback) : void{
+			$this->world_manager->get($pos->getWorld())->add($id, $text);
 			$callback($id, $text);
 		});
 	}
@@ -84,7 +104,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -114,7 +134,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -144,7 +164,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -175,7 +195,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -206,7 +226,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -242,7 +262,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$texts = [];
 					foreach(array_slice($args, 1) as $id_arg){
 						$id = (int) $id_arg;
@@ -290,7 +310,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -327,7 +347,7 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
-					$world = WorldManager::get($sender->getWorld());
+					$world = $this->world_manager->get($sender->getWorld());
 					$old_text = $world->getText($id);
 					if($old_text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -369,7 +389,7 @@ final class Loader extends PluginBase{
 					}
 
 					try{
-						$text = WorldManager::get($sender->getWorld())->remove($id);
+						$text = $this->world_manager->get($sender->getWorld())->remove($id);
 					}catch(InvalidArgumentException $e){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 						return true;

@@ -16,8 +16,11 @@ If your `canHandle()` returns true for a specific `FloatingText` (`FloatingText`
 This is the base information required for implementation of a runtime-efficient find-and-replace-wildcard-in-floating-text.<br>
 As a utility, the plugin ships with a `FloatingTextFindAndReplaceHandler` and `FloatingTextFindAndReplaceTickerHandler` that can be used like so:
 ```php
+/** @var Loader $loader */
+$manager = $loader->getHandlerManager();
+
 // FloatingTextFindAndReplaceHandler - Used to update static wildcards.
-FloatingTextHandlerManager::register(new FloatingTextFindAndReplaceHandler(
+$manager->register(new FloatingTextFindAndReplaceHandler(
 	"{MCPE_VERSION}",
 	Server::getInstance()->getVersion()
 ));
@@ -26,7 +29,7 @@ FloatingTextHandlerManager::register(new FloatingTextFindAndReplaceHandler(
 ```php
 // FloatingTextFindAndReplaceTickerHandler - Used to update wildcards repetitively.
 $start = time();
-FloatingTextHandlerManager::register(new FloatingTextFindAndReplaceTickerHandler(
+$manager->register(new FloatingTextFindAndReplaceTickerHandler(
 	$plugin,
 	"{LAST_ENVOY}",
 	function() use($start) : string{

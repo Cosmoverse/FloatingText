@@ -27,7 +27,7 @@ final class Database{
 		$this->connector->executeGeneric(DatabaseStmts::INIT);
 		$this->waitAll();
 
-		WorldManager::addListener(new DatabaseWorldListener($this));
+		$loader->getWorldManager()->addListener(new DatabaseWorldListener($this));
 	}
 
 	public function waitAll() : void{

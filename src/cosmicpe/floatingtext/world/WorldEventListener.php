@@ -11,15 +11,16 @@ use pocketmine\event\world\WorldUnloadEvent;
 
 final class WorldEventListener implements Listener{
 
-	public function __construct(){
-	}
+	public function __construct(
+		private WorldManager $world_manager
+	){}
 
 	/**
 	 * @param WorldLoadEvent $event
 	 * @priority LOWEST
 	 */
 	public function onWorldLoad(WorldLoadEvent $event) : void{
-		WorldManager::add($event->getWorld());
+		$this->world_manager->add($event->getWorld());
 	}
 
 	/**
@@ -27,7 +28,7 @@ final class WorldEventListener implements Listener{
 	 * @priority LOWEST
 	 */
 	public function onWorldUnload(WorldUnloadEvent $event) : void{
-		WorldManager::remove($event->getWorld());
+		$this->world_manager->remove($event->getWorld());
 	}
 
 	/**
@@ -35,6 +36,6 @@ final class WorldEventListener implements Listener{
 	 * @priority LOWEST
 	 */
 	public function onChunkLoad(ChunkLoadEvent $event) : void{
-		WorldManager::get($event->getWorld())->onChunkLoad($event->getChunkX(), $event->getChunkZ());
+		$this->world_manager->get($event->getWorld())->onChunkLoad($event->getChunkX(), $event->getChunkZ());
 	}
 }

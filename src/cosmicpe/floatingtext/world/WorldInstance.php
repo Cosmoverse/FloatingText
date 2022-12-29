@@ -27,6 +27,7 @@ final class WorldInstance{
 	private array $text_chunks = []; // = [chunkHash => [id => entity_id|null, id2 => entity_id2|null, ...idn => entity_idn|null]]
 
 	public function __construct(
+		private WorldManager $world_manager,
 		private World $world
 	){}
 
@@ -57,7 +58,7 @@ final class WorldInstance{
 		}
 
 		$this->addInternally($id, $text);
-		WorldManager::onWorldFloatingTextAdd($this, $id, $text);
+		$this->world_manager->onWorldFloatingTextAdd($this, $id, $text);
 
 		$this->trySpawningText($id);
 	}
@@ -70,7 +71,7 @@ final class WorldInstance{
 		$text = $this->texts[$id];
 		$this->despawnText($id);
 		$this->removeInternally($id);
-		WorldManager::onWorldFloatingTextRemove($this, $id);
+		$this->world_manager->onWorldFloatingTextRemove($this, $id);
 		return $text;
 	}
 
@@ -79,7 +80,7 @@ final class WorldInstance{
 		$this->removeInternally($id);
 		$this->addInternally($id, $text);
 		$this->trySpawningText($id);
-		WorldManager::onWorldFloatingTextUpdate($this, $id, $text);
+		$this->world_manager->onWorldFloatingTextUpdate($this, $id, $text);
 	}
 
 	private function addInternally(int $id, FloatingText $text) : void{
@@ -109,11 +110,11 @@ final class WorldInstance{
 		$entity = new FloatingTextEntity($this->world, $id, $text);
 		$entity->addDespawnCallback(function() use($text, $id, $entity) : void{
 			$this->text_chunks[self::chunkHash($text)][$id] = null;
-			WorldManager::onWorldFloatingTextDespawn($this, $id, $text, $entity);
+			$this->world_manager->onWorldFloatingTextDespawn($this, $id, $text, $entity);
 		});
 		$this->text_chunks[self::chunkHash($text)][$id] = $entity->getId();
 		$entity->spawnToAll();
-		WorldManager::onWorldFloatingTextSpawn($this, $id, $text, $entity);
+		$this->world_manager->onWorldFloatingTextSpawn($this, $id, $text, $entity);
 	}
 
 	private function despawnText(int $id) : bool{
