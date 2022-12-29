@@ -7,14 +7,13 @@ Use `/ft near` to list all floating texts near you (it also specifies each float
 Use `/ft delete <id>` to delete a floating text.
 
 ## API
-Currently, there's no API to add/remove floating texts (or if you wish to: `Server::dispatchCommand()` is always a possibility).
-There is however a pretty optimized floating text handling API aimed at updating floating texts by replacing wildcards.<br>
+"At the moment, there is no API method available for adding or removing floating texts. This means that all floating texts must be set up manually in the game.
+However, the plugin does provide an API to update floating texts by replacing wildcards:
 
-Preferably on plugin enable, you can register a `FloatingTextHandler` instance by calling `FloatingTextHandlerManager::register($handler)`.<br>
+On plugin enable, register a `FloatingTextHandler` instance by calling `FloatingTextHandlerManager::register($handler)`.<br>
 The `FloatingTextHandler` consists of three methods — `canHandle(FloatingText)`, `onSpawn(FloatingText, FloatingTextEntity)` and `onDespawn(FloatingText, FloatingTextEntity)`.<br>
 If your `canHandle()` returns true for a specific `FloatingText` (`FloatingText` holds world, x, y, z and the floating text string), then your `FloatingTextHandler` will be notified via `onSpawn` and `onDespawn` methods whenever a floating text gets spawned.
-This is the base information required for implementation of a runtime-efficient find-and-replace-wildcard-in-floating-text.<br>
-As a utility, the plugin ships with a `FloatingTextFindAndReplaceHandler` and `FloatingTextFindAndReplaceTickerHandler` that can be used like so:
+As a utility, the plugin ships with a `FloatingTextFindAndReplaceHandler` and `FloatingTextFindAndReplaceTickerHandler` that can be used as follows:
 ```php
 /** @var Loader $loader */
 $manager = $loader->getHandlerManager();
@@ -32,22 +31,17 @@ $start = time();
 $manager->register(new FloatingTextFindAndReplaceTickerHandler(
 	$plugin,
 	"{LAST_ENVOY}",
-	function() use($start) : string{
-		return gmdate("i:s", time() - $start);
-	},
+	fn() => gmdate("i:s", time() - $start),
 	20 * 10 // update every 10 seconds
 ));
 // run /ft add &bLast envoy was {LAST_ENVOY} ago
 ```
 
 ## Performance and Resource Consumption
-Once a world is loaded, FloatingText will cache all floating texts present in that world into memory, indexing them by their unique IDs.
-FloatingText also maintains a chunk -> [id -> entity_id] mapping to speed up floating texts lookup on chunk basis.<br>
-The plugin was optimized for fast runtime lookups by sacrificing memory (and in some cases, CPU too (yeah i know)).<br>
-While registering a `FloatingTextHandler`, the plugin loops through all cached floating texts and calls `FloatingTextHandler::canHandle()` so
-it can prepare a list of floating texts that require an update during runtime, making `FloatingTextHandlerManager::register()` `O(n)` `n = number of floating texts in all loaded worlds`.<br>
+Once a world is loaded, the plugin caches all floating texts present in that world into memory, indexing them by their unique IDs.
+Floating texts are implemented as entities and will only stay loaded as long as the chunk they are located in remains loaded.<br>
+FloatingText also maintains a chunk -> [id -> entity_id] mapping to speed up floating text lookup.<br>
+When registering a `FloatingTextHandler`, the plugin calls `FloatingTextHandler::canHandle()` for all loaded floating texts to prepare a list of floating texts that require an update during runtime.
 
-Floating texts are registered as entities and will only spawn when the chunk they're in is loaded.<br>
-
-The floating texts are stored in an `SQLite3` database and all calls to the database are tbreaded + asynchronous (except for `CREATE TABLE` which sleeps the main thread until the query has been executed).
-This means whenever a world is loaded, the floating texts may not appear until the results of the SELECT statement are returned. However, SQLite3 is fast enough to make this a near impossible case (unless you hacked the plugin and got access to the `Database` object and are hogging the database with mass insert/updates requests).
+The floating texts are stored in an `SQLite3` database, and all access to the database is done in a separate thread asynchronously.
+This means that when a world is loaded, the floating texts will not be displayed until the database has returned the necessary information.
