@@ -12,10 +12,10 @@ use cosmicpe\floatingtext\world\WorldManager;
 
 final class FloatingTextHandlerManager implements WorldListener{
 
-	/** @var FloatingTextHandler[] */
+	/** @var array<int, FloatingTextHandler> */
 	private array $handlers = [];
 
-	/** @var int[][] */
+	/** @var array<int, array<int, int>> */
 	private array $id_handlers = [];
 
 	public function __construct(

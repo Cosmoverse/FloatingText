@@ -34,7 +34,7 @@ class FloatingTextEntity extends Entity{
 	private int $floating_text_id;
 	private FloatingText $floating_text;
 
-	/** @var Closure[] */
+	/** @var array<int, Closure> */
 	private array $despawn_callbacks = [];
 
 	public function __construct(World $world, int $text_id, FloatingText $text){

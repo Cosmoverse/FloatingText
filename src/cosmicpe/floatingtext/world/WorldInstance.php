@@ -19,14 +19,10 @@ final class WorldInstance{
 
 	private bool $loading = true;
 
-	/** @var FloatingText[] */
+	/** @var array<int, FloatingText> */
 	private array $texts = [];
 
-	/**
-	 * @var int[][]|null[][]
-	 *
-	 * @phpstan-var array<int, array<int, int|null>>
-	 */
+	/**  @var array<int, array<int, int|null>> */
 	private array $text_chunks = []; // = [chunkHash => [id => entity_id|null, id2 => entity_id2|null, ...idn => entity_idn|null]]
 
 	public function __construct(
@@ -39,7 +35,7 @@ final class WorldInstance{
 	}
 
 	/**
-	 * @return FloatingText[]
+	 * @return array<int, FloatingText>
 	 */
 	public function getAllFloatingTexts() : array{
 		return $this->texts;

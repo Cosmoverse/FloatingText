@@ -15,7 +15,7 @@ final class FloatingTextFindAndReplaceTickerHandler implements FloatingTextHandl
 	private string $find;
 	private Closure $replace;
 
-	/** @var FloatingTextEntity[] */
+	/** @var array<int, FloatingTextEntity> */
 	private array $entities = [];
 
 	public function __construct(Plugin $plugin, string $find, Closure $replace, int $interval = 20){

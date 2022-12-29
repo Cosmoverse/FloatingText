@@ -11,10 +11,10 @@ use pocketmine\world\World;
 
 final class WorldManager{
 
-	/** @var WorldInstance[] */
+	/** @var array<int, WorldInstance> */
 	private array $worlds = [];
 
-	/** @var WorldListener[] */
+	/** @var array<int, WorldListener> */
 	private array $listeners = [];
 
 	public function __construct(){
@@ -60,7 +60,7 @@ final class WorldManager{
 	}
 
 	/**
-	 * @return WorldInstance[]
+	 * @return array<int, WorldInstance>
 	 */
 	public function getAll() : array{
 		return $this->worlds;
