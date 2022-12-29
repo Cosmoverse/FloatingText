@@ -112,15 +112,20 @@ class FloatingTextEntity extends Entity{
 		$this->getNetworkProperties()->clearDirtyProperties();
 	}
 
-	protected function onDispose() : void{
-		parent::onDispose();
+	public function executeFloatingTextDespawnHooks() : void{
 		foreach($this->despawn_callbacks as $callback){
 			$callback();
 		}
+		$this->despawn_callbacks = [];
+	}
+
+	protected function onDispose() : void{
+		parent::onDispose();
+		$this->executeFloatingTextDespawnHooks();
 	}
 
 	protected function destroyCycles() : void{
 		parent::destroyCycles();
-		$this->despawn_callbacks = [];
+		unset($this->despawn_callbacks);
 	}
 }

@@ -137,13 +137,9 @@ final class WorldInstance{
 		$entity_id = $this->text_chunks[self::chunkHash($this->texts[$id])][$id];
 		if($entity_id !== null){
 			$entity = $this->world->getEntity($entity_id);
-			if($entity !== null){
-				// Not using Entity::flagForDespawn() here because during WorldInstance::update(), a
-				// floating text could exist while one with the same floating text ID is flagged for despawn,
-				// leading to a race condition as database is updated during Entity::close() which is likely
-				// called after a new floating text of the same floating text ID has been indexed into the
-				// database.
-				$entity->close();
+			if($entity instanceof FloatingTextEntity && !$entity->isFlaggedForDespawn()){
+				$entity->executeFloatingTextDespawnHooks();
+				$entity->flagForDespawn();
 				return true;
 			}
 		}
