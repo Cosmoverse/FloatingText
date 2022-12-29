@@ -105,6 +105,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -135,6 +140,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -165,6 +175,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -196,6 +211,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -227,6 +247,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -263,6 +288,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$texts = [];
 					foreach(array_slice($args, 1) as $id_arg){
 						$id = (int) $id_arg;
@@ -311,6 +341,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$text = $world->getText($id);
 					if($text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -348,6 +383,11 @@ final class Loader extends PluginBase{
 					}
 
 					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					$old_text = $world->getText($id);
 					if($old_text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
@@ -388,9 +428,15 @@ final class Loader extends PluginBase{
 						return true;
 					}
 
+					$world = $this->world_manager->get($sender->getWorld());
+					if($world->isLoading()){
+						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
+						return true;
+					}
+
 					try{
-						$text = $this->world_manager->get($sender->getWorld())->remove($id);
-					}catch(InvalidArgumentException $e){
+						$text = $world->remove($id);
+					}catch(InvalidArgumentException){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 						return true;
 					}

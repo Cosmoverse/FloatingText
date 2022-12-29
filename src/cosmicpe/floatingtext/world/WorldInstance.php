@@ -7,6 +7,7 @@ namespace cosmicpe\floatingtext\world;
 use cosmicpe\floatingtext\FloatingText;
 use cosmicpe\floatingtext\FloatingTextEntity;
 use InvalidArgumentException;
+use LogicException;
 use pocketmine\world\format\Chunk;
 use pocketmine\world\World;
 
@@ -15,6 +16,8 @@ final class WorldInstance{
 	private static function chunkHash(FloatingText $text) : int{
 		return World::chunkHash(((int) $text->x) >> Chunk::COORD_BIT_SIZE, ((int) $text->z) >> Chunk::COORD_BIT_SIZE);
 	}
+
+	private bool $loading = true;
 
 	/** @var FloatingText[] */
 	private array $texts = [];
@@ -42,17 +45,26 @@ final class WorldInstance{
 		return $this->texts;
 	}
 
+	public function isLoading() : bool{
+		return $this->loading;
+	}
+
 	/**
 	 * @param array<int, FloatingText> $texts
 	 * @return void
 	 */
 	public function load(array $texts) : void{
+		$this->loading = false;
 		foreach($texts as $id => $text){
 			$this->add($id, $text);
 		}
 	}
 
 	public function add(int $id, FloatingText $text) : void{
+		if($this->loading){
+			throw new LogicException("Cannot add text while the world is loading");
+		}
+
 		if(isset($this->texts[$id])){
 			throw new InvalidArgumentException("Tried adding an already existing floating text");
 		}
@@ -64,6 +76,10 @@ final class WorldInstance{
 	}
 
 	public function remove(int $id) : FloatingText{
+		if($this->loading){
+			throw new LogicException("Cannot remove text while the world is loading");
+		}
+
 		if(!isset($this->texts[$id])){
 			throw new InvalidArgumentException("Tried removing a non-existent floating text");
 		}
@@ -76,6 +92,10 @@ final class WorldInstance{
 	}
 
 	public function update(int $id, FloatingText $text) : void{
+		if($this->loading){
+			throw new LogicException("Cannot update text while the world is loading");
+		}
+
 		$this->despawnText($id);
 		$this->removeInternally($id);
 		$this->addInternally($id, $text);

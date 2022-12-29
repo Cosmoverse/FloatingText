@@ -13,7 +13,6 @@ final class DatabaseWorldListener implements WorldListener{
 
 	public function __construct(
 		private Database $database,
-		private bool $wait_until_load = false
 	){}
 
 	public function onWorldAdd(WorldInstance $world) : void{
@@ -22,9 +21,6 @@ final class DatabaseWorldListener implements WorldListener{
 				$world->load($texts);
 			}
 		});
-		if($this->wait_until_load){
-			$this->database->waitAll();
-		}
 	}
 
 	public function onWorldFloatingTextUpdate(WorldInstance $world, int $id, FloatingText $text) : void{
