@@ -11,12 +11,12 @@ use cosmicpe\floatingtext\world\WorldManager;
 use InvalidArgumentException;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
 use function array_shift;
+use function sprintf;
 
 final class Loader extends PluginBase{
 
@@ -64,7 +64,7 @@ final class Loader extends PluginBase{
 					$this->addFloatingText($sender->getPosition(), $line, static function(int $id, FloatingText $text) use($sender) : void{
 						if(!($sender instanceof Player) || $sender->isOnline()){
 							$sender->sendMessage(TextFormat::GREEN . "Added floating text at your position!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+							$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 							$sender->sendMessage(TextFormat::GREEN . "Text: {$text->line}");
 						}
 					});
@@ -96,7 +96,7 @@ final class Loader extends PluginBase{
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Prepended floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Prepended Text: {$line}");
 					return true;
 				case "append":
@@ -126,7 +126,7 @@ final class Loader extends PluginBase{
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Appended floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Appended Text: {$line}");
 					return true;
 				case "shift":
@@ -157,7 +157,7 @@ final class Loader extends PluginBase{
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Shifted floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Shifted Text: {$shifted}");
 					return true;
 				case "pop":
@@ -188,7 +188,7 @@ final class Loader extends PluginBase{
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Popped floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Popped Text: {$pop}");
 					return true;
 				case "split":
@@ -230,7 +230,7 @@ final class Loader extends PluginBase{
 					}
 
 					$sender->sendMessage(TextFormat::GREEN . "Split floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Number of splits: " . (count($lines) + 1));
 					return true;
 				case "combine":
@@ -264,7 +264,7 @@ final class Loader extends PluginBase{
 					$this->addFloatingText($sender->getPosition(), $line, static function(int $id, FloatingText $text) use($sender) : void{
 						if(!($sender instanceof Player) || $sender->isOnline()){
 							$sender->sendMessage(TextFormat::GREEN . "Added floating text at your position!");
-							$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+							$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 							$sender->sendMessage(TextFormat::GREEN . "Text: {$text->line}");
 						}
 					});
@@ -308,7 +308,7 @@ final class Loader extends PluginBase{
 					$world->update($id, $text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Updated floating text #{$id}'s line #{$line_number}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Updated line: {$line_number}");
 					$sender->sendMessage(TextFormat::GREEN . "New Text: {$new_text}");
 					return true;
@@ -328,20 +328,19 @@ final class Loader extends PluginBase{
 					}
 
 					$world = WorldManager::get($sender->getWorld());
-					$text = $world->getText($id);
-					if($text === null){
+					$old_text = $world->getText($id);
+					if($old_text === null){
 						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
 						return true;
 					}
 
-					$old_pos = new Vector3($text->x, $text->y, $text->z);
 					$new_pos = $sender->getPosition();
-					$new_text = new FloatingText($text->world, $new_pos->x, $new_pos->y, $new_pos->z, $text->line);
+					$new_text = new FloatingText($old_text->world, $new_pos->x, $new_pos->y, $new_pos->z, $old_text->line);
 					$world->update($id, $new_text);
 
 					$sender->sendMessage(TextFormat::GREEN . "Moved floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $old_pos->x) . ", y=" . sprintf("%0.4f", $old_pos->y) . ", z=" . sprintf("%0.4f", $old_pos->z) . " world={$text->world}");
-					$sender->sendMessage(TextFormat::GREEN . "New Position: x=" . sprintf("%0.4f", $new_pos->x) . ", y=" . sprintf("%0.4f", $new_pos->y) . ", z=" . sprintf("%0.4f", $new_pos->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $old_text->x, $old_text->y, $old_text->z, $old_text->world));
+					$sender->sendMessage(TextFormat::GREEN . sprintf("New Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $new_text->x, $new_text->y, $new_text->z, $new_text->world));
 					return true;
 				case "near":
 					$world = $sender->getWorld();
@@ -377,7 +376,7 @@ final class Loader extends PluginBase{
 					}
 
 					$sender->sendMessage(TextFormat::GREEN . "Removed floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . "Position: x=" . sprintf("%0.4f", $text->x) . ", y=" . sprintf("%0.4f", $text->y) . ", z=" . sprintf("%0.4f", $text->z) . " world={$text->world}");
+					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Text: {$text->line}");
 					return true;
 			}
