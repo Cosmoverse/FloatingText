@@ -45,7 +45,7 @@ Once a world is loaded, FloatingText will cache all floating texts present in th
 FloatingText also maintains a chunk -> [id -> entity_id] mapping to speed up floating texts lookup on chunk basis.<br>
 The plugin was optimized for fast runtime lookups by sacrificing memory (and in some cases, CPU too (yeah i know)).<br>
 While registering a `FloatingTextHandler`, the plugin loops through all cached floating texts and calls `FloatingTextHandler::canHandle()` so
-it can prepare a list of floating texts that require an update during runtime, making `FloatingTextHandlerManager::register()` `O(n)` `n = number of cached floating texts / sum of number of floating texts in all loaded worlds`.<br>
+it can prepare a list of floating texts that require an update during runtime, making `FloatingTextHandlerManager::register()` `O(n)` `n = number of floating texts in all loaded worlds`.<br>
 
 Floating texts are registered as entities and will only spawn when the chunk they're in is loaded.<br>
 
