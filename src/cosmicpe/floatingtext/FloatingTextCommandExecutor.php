@@ -6,14 +6,17 @@ namespace cosmicpe\floatingtext;
 
 use Closure;
 use cosmicpe\floatingtext\db\Database;
+use cosmicpe\floatingtext\world\WorldInstance;
 use cosmicpe\floatingtext\world\WorldManager;
 use InvalidArgumentException;
 use pocketmine\command\Command;
 use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
+use pocketmine\command\utils\CommandException;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
+use pocketmine\world\World;
 use function array_map;
 use function array_pop;
 use function array_shift;
@@ -43,21 +46,49 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 		});
 	}
 
-	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
+	private function parseInt(string $argument, string $name) : int{
+		$id = (int) $argument;
+		if($argument !== (string) $id){
+			throw new CommandException("Invalid {$name}: {$id}");
+		}
+		return $id;
+	}
+
+	private function parseFloatingTextId(string $argument) : int{
+		return $this->parseInt($argument, "floating text id");
+	}
+
+	private function getWorldForTextModification(World $world) : WorldInstance{
+		$instance = $this->world_manager->get($world);
+		if($instance->isLoading()){
+			throw new CommandException("Cannot modify text while the world is loading. Try again after some time.");
+		}
+		return $instance;
+	}
+
+	private function getTextInWorld(WorldInstance $world, int $id) : FloatingText{
+		return $world->getText($id) ?? throw new CommandException("No floating text with the ID {$id} was found!");
+	}
+
+	/**
+	 * @param CommandSender $sender
+	 * @param Command $command
+	 * @param string $label
+	 * @param string[] $args
+	 */
+	private function executeCommand(CommandSender $sender, Command $command, string $label, array $args) : void{
 		if(!($sender instanceof Player)){
-			$sender->sendMessage(TextFormat::RED . "This command must be used as a player.");
-			return false;
+			throw new CommandException("This command must be used as a player.");
 		}
 
 		if(isset($args[0])){
 			switch($args[0]){
 				case "add":
 					if(!isset($args[1])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <...text>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <...text>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: You may use & for colour codes."
 						);
-						return true;
 					}
 
 					$line = TextFormat::colorize(implode(" ", array_slice($args, 1)));
@@ -68,33 +99,18 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 							$sender->sendMessage(TextFormat::GREEN . "Text: {$text->line}");
 						}
 					});
-					return true;
+					return;
 				case "prepend":
 					if(!isset($args[1]) || !isset($args[2])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id> <...line>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id> <...line>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
-					$text = $world->getText($id);
-					if($text === null){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
-					}
+					$id = $this->parseFloatingTextId($args[1]);
+					$world = $this->getWorldForTextModification($sender->getWorld());
+					$text = $this->getTextInWorld($world, $id);
 
 					$line = TextFormat::colorize(implode(" ", array_slice($args, 2)));
 					$text = new FloatingText($text->world, $text->x, $text->y, $text->z, $line . TextFormat::EOL . $text->line);
@@ -103,33 +119,18 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . "Prepended floating text #{$id}!");
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Prepended Text: {$line}");
-					return true;
+					return;
 				case "append":
 					if(!isset($args[1]) || !isset($args[2])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id> <...line>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id> <...line>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
-					$text = $world->getText($id);
-					if($text === null){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
-					}
+					$id = $this->parseFloatingTextId($args[1]);
+					$world = $this->getWorldForTextModification($sender->getWorld());
+					$text = $this->getTextInWorld($world, $id);
 
 					$line = TextFormat::colorize(implode(" ", array_slice($args, 2)));
 					$text = new FloatingText($text->world, $text->x, $text->y, $text->z, $text->line . TextFormat::EOL . $line);
@@ -138,33 +139,18 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . "Appended floating text #{$id}!");
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Appended Text: {$line}");
-					return true;
+					return;
 				case "shift":
 					if(!isset($args[1])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
-					$text = $world->getText($id);
-					if($text === null){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
-					}
+					$id = $this->parseFloatingTextId($args[1]);
+					$world = $this->getWorldForTextModification($sender->getWorld());
+					$text = $this->getTextInWorld($world, $id);
 
 					$line = explode(TextFormat::EOL, $text->line);
 					$shifted = array_shift($line);
@@ -174,33 +160,18 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . "Shifted floating text #{$id}!");
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Shifted Text: {$shifted}");
-					return true;
+					return;
 				case "pop":
 					if(!isset($args[1])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
-					$text = $world->getText($id);
-					if($text === null){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
-					}
+					$id = $this->parseFloatingTextId($args[1]);
+					$world = $this->getWorldForTextModification($sender->getWorld());
+					$text = $this->getTextInWorld($world, $id);
 
 					$line = explode(TextFormat::EOL, $text->line);
 					$pop = array_pop($line);
@@ -210,40 +181,24 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . "Popped floating text #{$id}!");
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Popped Text: {$pop}");
-					return true;
+					return;
 				case "split":
 					if(!isset($args[1])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
-					$text = $world->getText($id);
-					if($text === null){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
-					}
+					$id = $this->parseFloatingTextId($args[1]);
+					$world = $this->getWorldForTextModification($sender->getWorld());
+					$text = $this->getTextInWorld($world, $id);
 
 					$step = -0.275;
 
 					$lines = explode(TextFormat::EOL, $text->line);
 					if(count($lines) === 1){
-						$sender->sendMessage(TextFormat::RED . "Floating text #{$id} contains only one line!");
-						return true;
+						throw new CommandException("Floating text #{$id} contains only one line!");
 					}
 
 					$text = new FloatingText($text->world, $text->x, $text->y - ($step * count($lines) * 0.5), $text->z, array_shift($lines));
@@ -257,36 +212,20 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . "Split floating text #{$id}!");
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Number of splits: " . (count($lines) + 1));
-					return true;
+					return;
 				case "combine":
 					if(!isset($args[1]) || !isset($args[2])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <...ids>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <...ids>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
+					$world = $this->getWorldForTextModification($sender->getWorld());
 					$texts = [];
 					foreach(array_slice($args, 1) as $id_arg){
-						$id = (int) $id_arg;
-						if($id_arg !== (string) $id){
-							$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id_arg}");
-							return true;
-						}
-
-						$text = $world->getText($id);
-						if($text === null){
-							$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-							return true;
-						}
-
+						$id = $this->parseFloatingTextId($id_arg);
+						$text = $this->getTextInWorld($world, $id);
 						$texts[] = $text;
 					}
 
@@ -298,44 +237,23 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 							$sender->sendMessage(TextFormat::GREEN . "Text: {$text->line}");
 						}
 					});
-					return true;
+					return;
 				case "set":
 					if(!isset($args[1]) || !isset($args[2]) || !isset($args[3])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id> <line_number> <...text>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id> <line_number> <...text>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					$line_number = (int) $args[2];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					if($args[2] !== (string) $line_number){
-						$sender->sendMessage(TextFormat::RED . "Invalid line number: {$line_number}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
-					$text = $world->getText($id);
-					if($text === null){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
-					}
+					$id = $this->parseFloatingTextId($args[1]);
+					$line_number = $this->parseInt($args[2], "line number");
+					$world = $this->getWorldForTextModification($sender->getWorld());
+					$text = $this->getTextInWorld($world, $id);
 
 					$lines = explode(TextFormat::EOL, $text->line);
 					if(!isset($lines[$line_number - 1])){
-						$sender->sendMessage(TextFormat::RED . "Line #{$line_number} does not exist floating text with the ID {$id}!");
-						return true;
+						throw new CommandException("Line #{$line_number} does not exist floating text with the ID {$id}!");
 					}
 
 					$lines[$line_number - 1] = $new_text = TextFormat::colorize(implode(" ", array_slice($args, 3)));
@@ -346,33 +264,18 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Updated line: {$line_number}");
 					$sender->sendMessage(TextFormat::GREEN . "New Text: {$new_text}");
-					return true;
+					return;
 				case "move":
 					if(!isset($args[1])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
-					$old_text = $world->getText($id);
-					if($old_text === null){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
-					}
+					$id = $this->parseFloatingTextId($args[1]);
+					$world = $this->getWorldForTextModification($sender->getWorld());
+					$old_text = $this->getTextInWorld($world, $id);
 
 					$new_pos = $sender->getPosition();
 					$new_text = new FloatingText($old_text->world, $new_pos->x, $new_pos->y, $new_pos->z, $old_text->line);
@@ -381,7 +284,7 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . "Moved floating text #{$id}!");
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $old_text->x, $old_text->y, $old_text->z, $old_text->world));
 					$sender->sendMessage(TextFormat::GREEN . sprintf("New Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $new_text->x, $new_text->y, $new_text->z, $new_text->world));
-					return true;
+					return;
 				case "near":
 					$world = $sender->getWorld();
 					$found = 0;
@@ -392,43 +295,31 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 						}
 					}
 					$sender->sendMessage($found > 0 ? TextFormat::GRAY . "Found " . TextFormat::WHITE . $found . TextFormat::GRAY . " floating texts near you!" : TextFormat::RED . "No floating texts were found nearby!");
-					return true;
+					return;
 				case "remove":
 					if(!isset($args[1])){
-						$sender->sendMessage(
-							TextFormat::RED . "Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
-						return true;
 					}
 
-					$id = (int) $args[1];
-					if($args[1] !== (string) $id){
-						$sender->sendMessage(TextFormat::RED . "Invalid floating text id: {$id}");
-						return true;
-					}
-
-					$world = $this->world_manager->get($sender->getWorld());
-					if($world->isLoading()){
-						$sender->sendMessage(TextFormat::RED . "Cannot modify text while the world is loading. Try again after some time.");
-						return true;
-					}
-
+					$id = $this->parseFloatingTextId($args[1]);
+					$world = $this->getWorldForTextModification($sender->getWorld());
 					try{
 						$text = $world->remove($id);
 					}catch(InvalidArgumentException){
-						$sender->sendMessage(TextFormat::RED . "No floating text with the ID {$id} was found!");
-						return true;
+						throw new CommandException("No floating text with the ID {$id} was found!");
 					}
 
 					$sender->sendMessage(TextFormat::GREEN . "Removed floating text #{$id}!");
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
 					$sender->sendMessage(TextFormat::GREEN . "Text: {$text->line}");
-					return true;
+					return;
 			}
 		}
 
-		$sender->sendMessage(
+		throw new CommandException(
 			TextFormat::BOLD . TextFormat::BLUE . "Floating Text Command" . TextFormat::RESET . TextFormat::EOL .
 			TextFormat::BLUE . "/{$label} add <...text>" . TextFormat::GRAY . " - Adds a floating text at your location" . TextFormat::EOL .
 			TextFormat::BLUE . "/{$label} prepend <id> <...text>" . TextFormat::GRAY . " - Prepends a line to a floating text" . TextFormat::EOL .
@@ -441,6 +332,15 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 			TextFormat::BLUE . "/{$label} near" . TextFormat::GRAY . " - Lists all floating texts near your location" . TextFormat::EOL .
 			TextFormat::BLUE . "/{$label} remove <id>" . TextFormat::GRAY . " - Removes a floating text"
 		);
-		return false;
+	}
+
+	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
+		try{
+			$this->executeCommand($sender, $command, $label, $args);
+		}catch(CommandException $e){
+			$sender->sendMessage(TextFormat::RED . $e->getMessage());
+			return false;
+		}
+		return true;
 	}
 }
