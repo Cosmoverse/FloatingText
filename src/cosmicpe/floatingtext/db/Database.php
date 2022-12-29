@@ -13,6 +13,12 @@ use poggit\libasynql\libasynql;
 
 final class Database{
 
+	private const INIT = "floatingtexts.init";
+	private const LOAD = "floatingtexts.load";
+	private const ADD = "floatingtexts.add";
+	private const UPDATE = "floatingtexts.update";
+	private const REMOVE = "floatingtexts.remove";
+
 	private DataConnector $connector;
 
 	public function __construct(Loader $loader){
@@ -23,7 +29,7 @@ final class Database{
 			],
 			"worker-limit" => 1
 		], ["sqlite" => "db/sqlite.sql"]);
-		$this->connector->executeGeneric(DatabaseStmts::INIT);
+		$this->connector->executeGeneric(self::INIT);
 		$loader->getWorldManager()->addListener(new DatabaseWorldListener($this));
 	}
 
@@ -34,7 +40,7 @@ final class Database{
 	 * @param Closure(array<int, FloatingText>) : void $callback
 	 */
 	public function load(string $world, Closure $callback) : void{
-		$this->connector->executeSelect(DatabaseStmts::LOAD, ["world" => $world], static function(array $rows) use($callback) : void{
+		$this->connector->executeSelect(self::LOAD, ["world" => $world], static function(array $rows) use($callback) : void{
 			$texts = [];
 			foreach($rows as ["id" => $id, "world" => $world, "x" => $x, "y" => $y, "z" => $z, "line" => $line]){
 				$texts[$id] = new FloatingText($world, $x, $y, $z, $line);
@@ -50,7 +56,7 @@ final class Database{
 	 * @param Closure(int) : void $callback
 	 */
 	public function add(FloatingText $text, Closure $callback) : void{
-		$this->connector->executeInsert(DatabaseStmts::ADD, [
+		$this->connector->executeInsert(self::ADD, [
 			"world" => $text->world,
 			"x" => $text->x,
 			"y" => $text->y,
@@ -66,7 +72,7 @@ final class Database{
 	 * @param FloatingText $text
 	 */
 	public function update(int $id, FloatingText $text) : void{
-		$this->connector->executeChange(DatabaseStmts::UPDATE, [
+		$this->connector->executeChange(self::UPDATE, [
 			"id" => $id,
 			"world" => $text->world,
 			"x" => $text->x,
@@ -82,7 +88,7 @@ final class Database{
 	 * @param int $id
 	 */
 	public function remove(int $id) : void{
-		$this->connector->executeChange(DatabaseStmts::REMOVE, ["id" => $id]);
+		$this->connector->executeChange(self::REMOVE, ["id" => $id]);
 	}
 
 	public function close() : void{
