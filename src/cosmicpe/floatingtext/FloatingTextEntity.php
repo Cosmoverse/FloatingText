@@ -12,7 +12,7 @@ use pocketmine\entity\Location;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
+use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
@@ -24,13 +24,6 @@ class FloatingTextEntity extends Entity{
 		return EntityIds::FALLING_BLOCK;
 	}
 
-	public $gravity = 0.0;
-	public $canCollide = false;
-	public $keepMovement = true;
-	protected $gravityEnabled = false;
-	protected $drag = 0.0;
-	protected $immobile = true;
-
 	private int $floating_text_id;
 	private FloatingText $floating_text;
 
@@ -41,13 +34,18 @@ class FloatingTextEntity extends Entity{
 		$this->setCanSaveWithChunk(false);
 		$this->floating_text_id = $text_id;
 		$this->floating_text = $text;
+		$this->keepMovement = true;
+		$this->gravity = 0.0;
+		$this->gravityEnabled = false;
+		$this->drag = 0.0;
+		$this->noClientPredictions = true;
 		parent::__construct(new Location($text->x, $text->y, $text->z, $world, 0.0, 0.0));
 	}
 
 	protected function initEntity(CompoundTag $nbt) : void{
 		parent::initEntity($nbt);
 		$this->setNameTag($this->floating_text->line);
-		$this->setNameTagAlwaysVisible(true);
+		$this->setNameTagAlwaysVisible();
 	}
 
 	protected function getInitialSizeInfo() : EntitySizeInfo{
@@ -56,7 +54,7 @@ class FloatingTextEntity extends Entity{
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{
 		parent::syncNetworkData($properties);
-		$properties->setInt(EntityMetadataProperties::VARIANT, RuntimeBlockMapping::getInstance()->toRuntimeId(VanillaBlocks::AIR()->getFullId()));
+		$properties->setInt(EntityMetadataProperties::VARIANT, TypeConverter::getInstance()->getBlockTranslator()->internalIdToNetworkId(VanillaBlocks::AIR()->getStateId()));
 	}
 
 	public function addDespawnCallback(Closure $callback) : void{
@@ -88,6 +86,14 @@ class FloatingTextEntity extends Entity{
 
 	public function canBeMovedByCurrents() : bool{
 		return false;
+	}
+
+	protected function getInitialDragMultiplier() : float{
+		return 0.0;
+	}
+
+	protected function getInitialGravity() : float{
+		return 0.0;
 	}
 
 	public function getOffsetPosition(Vector3 $vector3) : Vector3{

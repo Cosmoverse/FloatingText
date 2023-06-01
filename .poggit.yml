@@ -7,5 +7,6 @@ projects:
     path: ""
     libs:
       - src: poggit/libasynql/libasynql
-        version: 4.1.6
+        branch: pm5
+        version: ^4.1.1
 ...
