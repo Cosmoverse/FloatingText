@@ -285,6 +285,32 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $old_text->x, $old_text->y, $old_text->z, $old_text->world));
 					$sender->sendMessage(TextFormat::GREEN . sprintf("New Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $new_text->x, $new_text->y, $new_text->z, $new_text->world));
 					return;
+				case "copy":
+					if(!isset($args[1])){
+						throw new CommandException(
+							"Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
+						);
+					}
+
+					$copy_id = $this->parseFloatingTextId($args[1]);
+					$text = null;
+					foreach($this->world_manager->getAll() as $world){
+						$text = $world->getText($copy_id);
+						if($text !== null){
+							break;
+						}
+					}
+
+					$text ?? throw new CommandException("No floating text with the id {$args[1]} was found");
+					$this->addFloatingText($sender->getPosition(), $text->line, static function(int $id, FloatingText $text) use($sender, $copy_id) : void{
+						if(!($sender instanceof Player) || $sender->isOnline()){
+							$sender->sendMessage(TextFormat::GREEN . "Copied floating text #{$copy_id} to your position!");
+							$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $text->x, $text->y, $text->z, $text->world));
+							$sender->sendMessage(TextFormat::GREEN . "Text: {$text->line}");
+						}
+					});
+					return;
 				case "near":
 					$world = $sender->getWorld();
 					$found = 0;
