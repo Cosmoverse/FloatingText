@@ -17,6 +17,12 @@ final class WorldInstance{
 		return World::chunkHash(((int) $text->x) >> Chunk::COORD_BIT_SIZE, ((int) $text->z) >> Chunk::COORD_BIT_SIZE);
 	}
 
+	private static int $runtime_internal_ids = -1;
+
+	public static function nextTextRuntimeId() : int{
+		return self::$runtime_internal_ids--;
+	}
+
 	private bool $loading = true;
 
 	/** @var array<int, FloatingText> */
@@ -88,14 +94,7 @@ final class WorldInstance{
 	}
 
 	public function update(int $id, FloatingText $text) : void{
-		if($this->loading){
-			throw new LogicException("Cannot update text while the world is loading");
-		}
-
-		$this->despawnText($id);
-		$this->removeInternally($id);
-		$this->addInternally($id, $text);
-		$this->trySpawningText($id);
+		$this->updateInternally($id, $text);
 		$this->world_manager->onWorldFloatingTextUpdate($this, $id, $text);
 	}
 
@@ -109,6 +108,17 @@ final class WorldInstance{
 		if(count($this->text_chunks[$chunk_hash]) === 0){
 			unset($this->text_chunks[$chunk_hash]);
 		}
+	}
+
+	public function updateInternally(int $id, FloatingText $text) : void{
+		if($this->loading){
+			throw new LogicException("Cannot update text while the world is loading");
+		}
+
+		$this->despawnText($id);
+		$this->removeInternally($id);
+		$this->addInternally($id, $text);
+		$this->trySpawningText($id);
 	}
 
 	public function trySpawningText(int $id) : bool{
