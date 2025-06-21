@@ -21,6 +21,7 @@ use function array_map;
 use function array_pop;
 use function array_shift;
 use function array_slice;
+use function assert;
 use function count;
 use function explode;
 use function implode;
@@ -268,22 +269,37 @@ final class FloatingTextCommandExecutor implements CommandExecutor{
 				case "move":
 					if(!isset($args[1])){
 						throw new CommandException(
-							"Usage: /{$label} {$args[0]} <id>" . TextFormat::EOL .
+							"Usage: /{$label} {$args[0]} <...id>" . TextFormat::EOL .
 							TextFormat::GRAY . "Hint: Use " . TextFormat::RED . "/{$label} near" . TextFormat::GRAY . " to list nearby floating texts along with their <id>."
 						);
 					}
 
-					$id = $this->parseFloatingTextId($args[1]);
 					$world = $this->getWorldForTextModification($sender->getWorld());
-					$old_text = $this->getTextInWorld($world, $id);
+					$old_texts = [];
+					foreach(array_slice($args, 1) as $arg){
+						$id = $this->parseFloatingTextId($arg);
+						$old_text = $this->getTextInWorld($world, $id);
+						$old_texts[] = [$id, $old_text];
+					}
 
 					$new_pos = $sender->getPosition();
-					$new_text = new FloatingText($old_text->world, $new_pos->x, $new_pos->y, $new_pos->z, $old_text->line);
-					$world->update($id, $new_text);
+					foreach($old_texts as $index => [$id, $old_text]){
+						assert($old_text instanceof FloatingText);
+						if($index === 0){
+							$pos = $new_pos;
+						}else{
+							$relative = $old_texts[0][1];
+							assert($relative instanceof FloatingText);
+							$pos = $new_pos->add($old_text->x - $relative->x, $old_text->y - $relative->y, $old_text->z - $relative->z);
+						}
 
-					$sender->sendMessage(TextFormat::GREEN . "Moved floating text #{$id}!");
-					$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $old_text->x, $old_text->y, $old_text->z, $old_text->world));
-					$sender->sendMessage(TextFormat::GREEN . sprintf("New Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $new_text->x, $new_text->y, $new_text->z, $new_text->world));
+						$new_text = new FloatingText($old_text->world, $pos->x, $pos->y, $pos->z, $old_text->line);
+						$world->update($id, $new_text);
+
+						$sender->sendMessage(TextFormat::GREEN . "Moved floating text #{$id}!");
+						$sender->sendMessage(TextFormat::GREEN . sprintf("Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $old_text->x, $old_text->y, $old_text->z, $old_text->world));
+						$sender->sendMessage(TextFormat::GREEN . sprintf("New Position: x=%.4f, y=%.4f, z=%.4f, world=%s", $new_text->x, $new_text->y, $new_text->z, $new_text->world));
+					}
 					return;
 				case "copy":
 					if(!isset($args[1])){

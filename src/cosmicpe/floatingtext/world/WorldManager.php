@@ -28,6 +28,11 @@ final class WorldManager{
 		$loader->getServer()->getPluginManager()->registerEvents(new WorldEventListener($this), $loader);
 	}
 
+	public function destroy() : void{
+		$this->listeners = [];
+		$this->worlds = [];
+	}
+
 	public function addListener(WorldListener $listener) : void{
 		$this->listeners[spl_object_id($listener)] = $listener;
 	}
@@ -57,6 +62,10 @@ final class WorldManager{
 
 	public function get(World $world) : WorldInstance{
 		return $this->worlds[$world->getId()];
+	}
+
+	public function getNullable(World $world) : ?WorldInstance{
+		return $this->worlds[$world->getId()] ?? null;
 	}
 
 	/**
